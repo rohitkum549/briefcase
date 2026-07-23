@@ -81,3 +81,25 @@ Husky runs `lint-staged` on `pre-commit`, which lints and formats staged
 `.ts`/`.tsx` files and formats other staged files (`.js`, `.json`, `.css`,
 `.md`). Hooks are installed automatically via the `prepare` script on
 `npm install`.
+
+## CI/CD
+
+Two GitHub Actions workflows live in `.github/workflows/`:
+
+- **`ci.yml`** — on every push/PR to `main`: installs deps, then runs
+  `typecheck`, `lint`, `format:check` and `build`. This is the quality gate;
+  a red run means the same commands would fail locally too.
+- **`deploy.yml`** — on every push to `main` (or manually via
+  `workflow_dispatch`): builds the app and publishes `dist/` to GitHub Pages
+  using the official `actions/{configure-pages,upload-pages-artifact,deploy-pages}`
+  actions. No secrets required — it only uses the repo's built-in
+  `GITHUB_TOKEN`.
+
+Because this repo (`rohitkum549/briefcase`) is a project site rather than a
+`<user>.github.io` repo, `vite.config.ts` sets `base: '/briefcase/'` for
+production builds so asset URLs resolve correctly once deployed. The site
+then serves at `https://rohitkum549.github.io/briefcase/`.
+
+**One-time setup before the first deploy runs:** in the GitHub repo, go to
+**Settings → Pages** and set **Source** to **GitHub Actions**. After that,
+every push to `main` redeploys automatically.
