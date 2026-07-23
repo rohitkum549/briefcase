@@ -1,0 +1,28 @@
+import { Skeleton } from '@/components/ui/skeleton';
+
+export function ExperienceSkeleton() {
+  return (
+    <div className="flex flex-col">
+      {Array.from({ length: 2 }).map((_, i) => (
+        <div
+          key={i}
+          className="grid grid-cols-1 gap-6 border-t border-white/10 py-8 md:grid-cols-[220px_1fr] md:gap-10"
+        >
+          <div>
+            <Skeleton className="h-3 w-28 bg-white/10" />
+            <Skeleton className="mt-3 h-3 w-20 bg-white/10" />
+          </div>
+          <div>
+            <Skeleton className="mb-2 h-6 w-56 bg-white/10" />
+            <Skeleton className="mb-5 h-3.5 w-40 bg-white/10" />
+            <div className="flex flex-col gap-2.5">
+              {Array.from({ length: 3 }).map((_, j) => (
+                <Skeleton key={j} className="h-3.5 w-full bg-white/10" />
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
