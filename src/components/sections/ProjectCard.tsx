@@ -42,9 +42,24 @@ export function ProjectCard({
         <h3 className="mb-2.5 font-heading text-[22px] font-bold tracking-tight">
           {project.title}
         </h3>
-        <p className="mb-5 text-[15px] leading-relaxed text-muted-foreground text-pretty">
+        <p className="mb-4 text-[15px] leading-relaxed text-muted-foreground text-pretty">
           {project.desc}
         </p>
+        {project.impact && (
+          <p className="mb-5">
+            {/* Marker highlight: a skewed, soft-edged band behind the text
+                rather than a rectangle, so it reads as a pen stroke. */}
+            <span className="relative inline-block font-medium">
+              <span
+                aria-hidden="true"
+                className="absolute -inset-x-1 bottom-0 -z-10 h-[62%] -skew-x-6 rounded-[2px] bg-accent-brand/22"
+              />
+              <span className="relative text-[14.5px] text-foreground">
+                {project.impact}
+              </span>
+            </span>
+          </p>
+        )}
         <div className="flex flex-wrap gap-2">
           {project.tags.map((tag) => (
             <span

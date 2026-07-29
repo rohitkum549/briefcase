@@ -23,6 +23,9 @@ function App() {
         <Stack />
         <AiSystems />
         <Experience />
+        {/* Reserved slot — see components/sections/CurrentlyShipping.tsx.
+            Uncomment the import and this line once currentlyShipping has content:
+            <CurrentlyShipping /> */}
         <About />
         <Contact />
       </main>

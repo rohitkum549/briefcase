@@ -5,6 +5,7 @@ import type { CapabilityGroup } from '@/types/capability';
 import type { AiStage, AiPrinciple } from '@/types/ai-system';
 import type { ExperienceEntry } from '@/types/experience';
 import type { AboutFact } from '@/types/about';
+import type { CurrentlyShippingItem } from '@/types/currently-shipping';
 import { simulateNetwork } from '@/services/network';
 import * as data from '@/services/data/portfolioData';
 
@@ -42,6 +43,9 @@ export const portfolioContentService = {
   },
   getAbout(): Promise<AboutContent> {
     return simulateNetwork({ text: data.aboutText, facts: data.aboutFacts });
+  },
+  getCurrentlyShipping(): Promise<CurrentlyShippingItem[]> {
+    return simulateNetwork(data.currentlyShipping);
   },
   getStackTags(): Promise<string[]> {
     return simulateNetwork(data.stackTags, 0);

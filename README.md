@@ -7,7 +7,8 @@ React 19, TypeScript (strict), Tailwind CSS v4 and shadcn/ui.
 
 - **Runtime:** Node.js v24+
 - **Framework/build:** React 19 + Vite + TypeScript (strict mode)
-- **Styling/UI:** Tailwind CSS v4, shadcn/ui (Radix UI primitives, CSS variable theming), Lucide icons
+- **Styling/UI:** Tailwind CSS v4, shadcn/ui (Radix UI primitives, CSS variable theming), Lucide + react-icons (Simple Icons) icons
+- **Résumé:** jsPDF generates an ATS-friendly PDF from the same content in `services/data/portfolioData.ts` — click "Download résumé" in the hero
 - **Code quality:** ESLint (flat config) + Prettier, enforced on commit via Husky + lint-staged
 
 ## Getting started

@@ -5,4 +5,6 @@ export interface ExperienceEntry {
   role: string;
   company: string;
   points: string[];
+  /** Keyword line rendered under the role — also feeds the résumé PDF. */
+  stack?: string[];
 }

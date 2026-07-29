@@ -8,4 +8,6 @@ export interface Project {
   title: string;
   desc: string;
   tags: string[];
+  /** Headline outcome — the number a reader remembers. */
+  impact?: string;
 }

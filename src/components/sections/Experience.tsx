@@ -1,4 +1,6 @@
 import { ExperienceSkeleton } from '@/components/skeletons/ExperienceSkeleton';
+import { HandNote } from '@/components/ui/hand-note';
+import { InkArrow } from '@/components/ui/ink';
 import { useExperience } from '@/hooks/useExperience';
 
 export function Experience() {
@@ -13,9 +15,28 @@ export function Experience() {
             Experience
           </span>
         </div>
-        <h2 className="mb-14 max-w-xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight text-on-deep md:text-[40px]">
-          Building in production, day to day.
-        </h2>
+        <div className="relative mb-14 flex flex-wrap items-end justify-between gap-6">
+          <h2 className="max-w-xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight text-on-deep md:text-[40px]">
+            Building in production, day to day.
+          </h2>
+          <div className="relative hidden w-[210px] pb-2 lg:block">
+            {/*
+              emerald-400/300 rather than accent-brand: this section sits on
+              bg-deep, where the brand teal drops to roughly 2:1 against the
+              background — fine for a hairline rule, not for text someone is
+              meant to read. Matches the accent AiSystems already uses on
+              bg-deep.
+            */}
+            <InkArrow
+              direction="down-left"
+              className="-top-9 left-6 h-11 w-11 text-emerald-400/70"
+              length={150}
+            />
+            <HandNote tilt={-2.5} className="block text-emerald-300">
+              every number here is one I can walk you through
+            </HandNote>
+          </div>
+        </div>
 
         {isLoading || !experience ? (
           <ExperienceSkeleton />
@@ -38,9 +59,16 @@ export function Experience() {
                   <h3 className="mb-1 font-heading text-[22px] font-bold tracking-tight text-on-deep">
                     {entry.role}
                   </h3>
-                  <div className="mb-4 text-[15px] text-on-deep/60">
+                  <div className="mb-3 text-[15px] text-on-deep/60">
                     {entry.company}
                   </div>
+                  {entry.stack && (
+                    <div className="mb-4 flex flex-wrap gap-x-2.5 gap-y-1.5 font-mono text-[11px] tracking-wider text-accent-brand/85">
+                      {entry.stack.map((tech) => (
+                        <span key={tech}>{tech}</span>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex flex-col gap-2.5">
                     {entry.points.map((point, i) => (
                       <div
