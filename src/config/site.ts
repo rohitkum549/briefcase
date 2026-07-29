@@ -4,7 +4,7 @@ import type { NavLink } from '@/types/nav';
 
 export const siteConfig: SiteConfig = {
   name: env.siteName,
-  role: 'Senior Full-Stack & Frontend Engineer',
+  role: 'Senior Full-Stack Engineer',
   location: 'Mumbai, India',
   email: env.contactEmail,
   phone: env.contactPhone,

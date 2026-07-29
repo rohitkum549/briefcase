@@ -1,6 +1,9 @@
 import { Button } from '@/components/ui/button';
+import { HandNote } from '@/components/ui/hand-note';
+import { InkArrow, InkCircle } from '@/components/ui/ink';
 import { HeroSkeleton } from '@/components/skeletons/HeroSkeleton';
 import { useHeroContent } from '@/hooks/useHeroContent';
+import { useResumeDownload } from '@/hooks/useResumeDownload';
 
 function DeveloperCodeCard() {
   return (
@@ -21,12 +24,14 @@ function DeveloperCodeCard() {
         <span className="text-[#8FD98A]">&quot;Senior Full-Stack&quot;</span>,
         {'\n'} based:{' '}
         <span className="text-[#8FD98A]">&quot;Mumbai, India&quot;</span>,{'\n'}{' '}
-        stack: [<span className="text-[#8FD98A]">&quot;Angular&quot;</span>,{' '}
+        stack: [<span className="text-[#8FD98A]">&quot;React 19&quot;</span>,{' '}
         <span className="text-[#8FD98A]">&quot;Node.js&quot;</span>,{' '}
-        <span className="text-[#8FD98A]">&quot;Spring&quot;</span>],
-        {'\n'} cloud: [
+        <span className="text-[#8FD98A]">&quot;TypeScript&quot;</span>],
+        {'\n'} infra: [
         <span className="text-[#8FD98A]">&quot;Docker&quot;</span>,{' '}
-        <span className="text-[#8FD98A]">&quot;AWS&quot;</span>],
+        <span className="text-[#8FD98A]">&quot;Coolify&quot;</span>,{' '}
+        <span className="text-[#8FD98A]">&quot;APISIX&quot;</span>,{' '}
+        <span className="text-[#8FD98A]">&quot;SigNoz&quot;</span>],
         {'\n'} leads:{' '}
         <span className="text-[#8FD98A]">&quot;architecture & AI&quot;</span>,
         {'\n'} years: <span className="text-[#C9A2FF]">3</span>,{'\n'} status:{' '}
@@ -41,6 +46,7 @@ function DeveloperCodeCard() {
 
 export function Hero() {
   const { data: hero, isLoading } = useHeroContent();
+  const handleDownloadResume = useResumeDownload();
 
   return (
     <section id="top" className="py-20 md:py-24">
@@ -62,22 +68,37 @@ export function Hero() {
               <p className="mb-9 max-w-lg text-lg leading-relaxed text-muted-foreground text-pretty">
                 {hero.description}
               </p>
-              <div className="mb-12 flex flex-wrap gap-3.5">
+              <div className="relative mb-12 flex flex-wrap gap-3.5">
                 <Button asChild size="lg" className="rounded-full px-6">
                   <a href="#work">View selected work →</a>
                 </Button>
                 <Button
-                  asChild
                   variant="outline"
                   size="lg"
                   className="rounded-full border-2 border-foreground px-6 text-foreground"
+                  onClick={handleDownloadResume}
                 >
-                  <a href="#contact">Download résumé</a>
+                  Download résumé
                 </Button>
+
+                {/* Handwritten aside pointing at the résumé button. */}
+                <div className="pointer-events-none absolute top-full right-0 hidden w-[190px] pt-3 lg:block">
+                  <InkArrow
+                    direction="up-right"
+                    className="top-1 -left-9 h-12 w-12 text-accent-brand/70"
+                    length={150}
+                  />
+                  <HandNote tilt={-4} className="block">
+                    generated live from this page — ATS-ready
+                  </HandNote>
+                </div>
               </div>
               <div className="flex flex-wrap gap-12 border-t pt-8">
-                {hero.stats.map((stat) => (
-                  <div key={stat.id}>
+                {hero.stats.map((stat, i) => (
+                  <div key={stat.id} className="relative">
+                    {i === 0 && (
+                      <InkCircle className="-top-2.5 -left-4 h-[62px] w-[104px] text-accent-brand/45" />
+                    )}
                     <div className="font-heading text-[32px] font-bold tracking-tight">
                       {stat.value}
                     </div>

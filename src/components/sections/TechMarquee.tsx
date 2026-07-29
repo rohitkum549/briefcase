@@ -1,3 +1,4 @@
+import { TechIcon } from '@/components/ui/tech-icon';
 import { useStackTags } from '@/hooks/useStackTags';
 
 export function TechMarquee() {
@@ -17,7 +18,13 @@ export function TechMarquee() {
             aria-hidden={copy === 1}
           >
             {items.map((tag, i) => (
-              <span key={`${copy}-${i}`}>{tag}</span>
+              <span
+                key={`${copy}-${i}`}
+                className="inline-flex items-center gap-2"
+              >
+                <TechIcon name={tag} className="size-4 flex-none" />
+                {tag}
+              </span>
             ))}
           </div>
         ))}

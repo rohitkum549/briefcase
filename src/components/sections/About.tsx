@@ -1,6 +1,9 @@
-import { UserRound } from 'lucide-react';
 import { AboutSkeleton } from '@/components/skeletons/AboutSkeleton';
+import { StickyNote } from '@/components/ui/sticky-note';
+import { HandNote } from '@/components/ui/hand-note';
+import { InkArrow } from '@/components/ui/ink';
 import { useAbout } from '@/hooks/useAbout';
+import { stickyNotes } from '@/services/data/portfolioData';
 
 export function About() {
   const { data: about, isLoading } = useAbout();
@@ -11,15 +14,21 @@ export function About() {
         {isLoading || !about ? (
           <AboutSkeleton />
         ) : (
-          <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-            <div className="flex aspect-4/5 flex-col items-center justify-center gap-3 rounded-2xl border bg-card">
-              <span className="flex size-14 items-center justify-center rounded-full border border-dashed text-muted-foreground">
-                <UserRound className="size-6" strokeWidth={1.5} />
-              </span>
-              <span className="font-mono text-[10px] tracking-[1.5px] text-muted-foreground uppercase">
-                Portrait
-              </span>
+          <div className="grid grid-cols-1 items-start gap-16 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+            {/* Sticky-note cluster — the human layer, pinned like a real desk. */}
+            <div className="relative flex flex-col items-center gap-6 pt-4 sm:flex-row sm:flex-wrap sm:justify-center lg:flex-col lg:items-start lg:pl-6">
+              {stickyNotes.map((note, i) => (
+                <StickyNote
+                  key={note.id}
+                  tone={note.tone}
+                  tilt={[-2.5, 1.8, -1.2][i] ?? -2}
+                  className={['lg:ml-0', 'lg:ml-14', 'lg:ml-4'][i] ?? undefined}
+                >
+                  {note.text}
+                </StickyNote>
+              ))}
             </div>
+
             <div>
               <div className="mb-5 flex items-center gap-2.5">
                 <span className="size-2 rounded-sm bg-accent-brand" />
@@ -33,7 +42,7 @@ export function About() {
               <p className="mb-4 text-lg leading-relaxed text-muted-foreground text-pretty">
                 {about.text}
               </p>
-              <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="relative mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
                 {about.facts.map((fact) => (
                   <div key={fact.id} className="border-t pt-3.5">
                     <div className="font-mono text-[10px] tracking-[1.5px] text-muted-foreground uppercase">
@@ -42,6 +51,18 @@ export function About() {
                     <div className="mt-1.5 text-[15px]">{fact.value}</div>
                   </div>
                 ))}
+
+                {/* Aside anchored to the facts grid, desktop only. */}
+                <div className="pointer-events-none absolute -right-4 top-full hidden w-[150px] pt-6 xl:block">
+                  <InkArrow
+                    direction="down-left"
+                    className="-top-1 -left-8 h-11 w-11 text-accent-brand/60"
+                    length={150}
+                  />
+                  <HandNote tilt={3}>
+                    always up for a good systems chat
+                  </HandNote>
+                </div>
               </div>
             </div>
           </div>

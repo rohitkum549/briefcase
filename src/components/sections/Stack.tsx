@@ -1,4 +1,7 @@
 import { StackSkeleton } from '@/components/skeletons/StackSkeleton';
+import { TechIcon } from '@/components/ui/tech-icon';
+import { HandNote } from '@/components/ui/hand-note';
+import { InkArrow } from '@/components/ui/ink';
 import { useCapabilities } from '@/hooks/useCapabilities';
 
 export function Stack() {
@@ -13,14 +16,26 @@ export function Stack() {
             Capabilities
           </span>
         </div>
-        <h2 className="mb-14 max-w-xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight md:text-[40px]">
-          A full-stack toolkit, from interface to infrastructure.
-        </h2>
+        <div className="relative mb-14 flex flex-wrap items-end justify-between gap-6">
+          <h2 className="max-w-xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight md:text-[40px]">
+            A full-stack toolkit, from interface to infrastructure.
+          </h2>
+          <div className="relative hidden w-[195px] pb-2 lg:block">
+            <InkArrow
+              direction="down-left"
+              className="-top-8 left-4 h-10 w-10 text-accent-brand/55"
+              length={150}
+            />
+            <HandNote tilt={2.5} className="block">
+              not a list of tutorials — all of this is in production
+            </HandNote>
+          </div>
+        </div>
 
         {isLoading || !capabilities ? (
           <StackSkeleton />
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {capabilities.map((group) => (
               <div key={group.id} className="rounded-2xl border bg-card p-6">
                 <div className="mb-5 border-b pb-3.5 font-mono text-[11px] tracking-[1.5px] text-muted-foreground uppercase">
@@ -32,7 +47,10 @@ export function Stack() {
                       key={item}
                       className="flex items-center gap-2.5 text-[15px]"
                     >
-                      <span className="size-1.5 flex-none rounded-full bg-accent-brand" />
+                      <TechIcon
+                        name={item}
+                        className="size-4 flex-none text-accent-brand"
+                      />
                       {item}
                     </div>
                   ))}
