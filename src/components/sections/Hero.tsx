@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { HandNote } from '@/components/ui/hand-note';
-import { InkArrow, InkCircle } from '@/components/ui/ink';
+import { InkArrow, InkCheck, InkUnderline } from '@/components/ui/ink';
+import { StickyNote } from '@/components/ui/sticky-note';
 import { HeroSkeleton } from '@/components/skeletons/HeroSkeleton';
 import { useHeroContent } from '@/hooks/useHeroContent';
 import { useResumeDownload } from '@/hooks/useResumeDownload';
@@ -44,6 +45,21 @@ function DeveloperCodeCard() {
   );
 }
 
+/** Same tone order as the About cluster, so the two read as one visual system. */
+const statTones = ['amber', 'teal', 'pink'] as const;
+const statTilts = [-2.5, 1.8, -1.4];
+
+/**
+ * The eyebrow is a "role · specialism · specialism" string, and only the role
+ * gets underlined. Underlining the whole thing looked like a stray horizontal
+ * rule: at this column width the string wraps to two lines, so a full-width
+ * underline sat beneath the short second line and ran well past its last word.
+ */
+function splitEyebrow(eyebrow: string): { role: string; rest: string } {
+  const [role, ...rest] = eyebrow.split(' · ');
+  return { role: role ?? eyebrow, rest: rest.join(' · ') };
+}
+
 export function Hero() {
   const { data: hero, isLoading } = useHeroContent();
   const handleDownloadResume = useResumeDownload();
@@ -56,11 +72,35 @@ export function Hero() {
         ) : (
           <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-20">
             <div>
-              <div className="mb-6 flex items-center gap-2.5">
-                <span className="size-2 rounded-sm bg-accent-brand" />
-                <span className="font-mono text-[11px] font-medium tracking-[2px] text-muted-foreground uppercase">
-                  {hero.eyebrow}
-                </span>
+              {/*
+                The underline is the pointing gesture, so this aside needs no
+                arrow — one mark instead of two is what keeps it from competing
+                with the headline directly beneath it.
+              */}
+              <div className="mb-7">
+                <div className="flex items-center gap-2.5">
+                  <span className="size-2 flex-none rounded-sm bg-accent-brand" />
+                  {/*
+                    Relaxed leading on the wrapper plus leading-none on the
+                    underlined run: this string wraps to two lines at every
+                    desktop width, and an inline-block's box is a full
+                    line-height tall, so an underline hung off its bottom edge
+                    landed on top of the second line. leading-none shrinks the
+                    box to hug the glyphs; the wrapper's leading buys the
+                    clearance below.
+                  */}
+                  <span className="font-mono text-[11px] leading-[2.1] font-medium tracking-[2px] text-muted-foreground uppercase">
+                    <span className="relative inline-block leading-none">
+                      {splitEyebrow(hero.eyebrow).role}
+                      <InkUnderline className="-bottom-1.5 left-0 h-2 w-full text-accent-brand/50" />
+                    </span>
+                    {splitEyebrow(hero.eyebrow).rest &&
+                      ` · ${splitEyebrow(hero.eyebrow).rest}`}
+                  </span>
+                </div>
+                <HandNote tilt={-2.5} className="mt-3 hidden lg:inline-block">
+                  this is the actual job, not the title
+                </HandNote>
               </div>
               <h1 className="mb-6 font-heading text-[42px] leading-[1.03] font-bold tracking-tight text-balance md:text-[54px] lg:text-[62px]">
                 {hero.heading}
@@ -93,18 +133,45 @@ export function Hero() {
                   </HandNote>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-12 border-t pt-8">
+              {/*
+                The stats used to be three plain type stacks, which made the
+                headline number — years shipping — the least designed thing in
+                the hero. On paper they read as something pinned up on purpose.
+
+                Alternating tilt directions rather than a uniform lean: notes
+                stuck on a wall by hand don't all list the same way, and a
+                repeated angle is the tell that gives away a template.
+
+                No ink circle here any more. The paper is the emphasis now, and
+                circling a number that already sits on a highlighted note is two
+                gestures doing one job.
+              */}
+              <div className="flex flex-wrap gap-x-3.5 gap-y-5 border-t pt-9">
                 {hero.stats.map((stat, i) => (
                   <div key={stat.id} className="relative">
+                    <StickyNote
+                      asBlock
+                      tone={statTones[i % statTones.length] ?? 'amber'}
+                      tilt={statTilts[i] ?? -2}
+                      className="max-w-[162px] px-4 pt-6 pb-4"
+                    >
+                      <div className="font-heading text-[30px] leading-none font-bold tracking-tight">
+                        {stat.value}
+                      </div>
+                      <div className="mt-2 text-[17px] leading-[1.2] md:text-[18px]">
+                        {stat.label.toLowerCase()}
+                      </div>
+                    </StickyNote>
+                    {/*
+                      Grader's tick on the lead metric only. Sits above the
+                      paper rather than across its corner: over the note the
+                      teal lost contrast against gold in dark mode, and the
+                      short flick of the tick disappeared into the tape. Kept
+                      right of centre so it clears the tape either way.
+                    */}
                     {i === 0 && (
-                      <InkCircle className="-top-2.5 -left-4 h-[62px] w-[104px] text-accent-brand/45" />
+                      <InkCheck className="-top-7 right-0 size-8 text-accent-brand dark:text-emerald-300" />
                     )}
-                    <div className="font-heading text-[32px] font-bold tracking-tight">
-                      {stat.value}
-                    </div>
-                    <div className="mt-1 font-mono text-[11px] tracking-wider text-muted-foreground uppercase">
-                      {stat.label}
-                    </div>
                   </div>
                 ))}
               </div>

@@ -251,13 +251,24 @@ class ResumeWriter {
     this.y += 15;
   }
 
-  /** "Label: value" on one line, label bold — reads cleanly, parses cleanly. */
+  /**
+   * "Label: value" on one line, label bold — reads cleanly, parses cleanly.
+   *
+   * Continuation lines hang under the value, but the indent is capped: a long
+   * label like "AI-assisted engineering: " would otherwise push wrapped text
+   * ~130pt in and leave a ragged trench down the middle of the section. Lines
+   * are still wrapped against the *full* label width, so a capped continuation
+   * line starts further left than it was measured for — shorter than it could
+   * be, but guaranteed never to overrun the right margin.
+   */
   skillRow(label: string, value: string) {
     const lineGap = 13.2;
+    const MAX_HANGING_INDENT = 84;
     this.doc.setFontSize(FONT_BODY);
     this.doc.setFont('helvetica', 'bold');
     const labelText = `${label}: `;
     const labelWidth = this.doc.getTextWidth(labelText);
+    const hangingIndent = Math.min(labelWidth, MAX_HANGING_INDENT);
 
     this.doc.setFont('helvetica', 'normal');
     const valueLines = this.doc.splitTextToSize(
@@ -274,7 +285,11 @@ class ResumeWriter {
       }
       this.doc.setFont('helvetica', 'normal');
       this.doc.setTextColor(...INK);
-      this.doc.text(line, MARGIN + labelWidth, this.y);
+      this.doc.text(
+        line,
+        MARGIN + (i === 0 ? labelWidth : hangingIndent),
+        this.y,
+      );
       this.y += lineGap;
     });
   }

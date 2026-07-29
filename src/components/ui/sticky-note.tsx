@@ -22,7 +22,17 @@ interface StickyNoteProps {
   /** Degrees of rotation — keep under ~4 or it reads as a mistake. */
   tilt?: number;
   className?: string;
+  /**
+   * Render children in a plain container instead of a paragraph. Needed when the
+   * note holds block content — a `<div>` inside the default `<p>` is invalid
+   * nesting and the browser silently closes the paragraph early, which drops the
+   * handwriting styles from everything after it.
+   */
+  asBlock?: boolean;
 }
+
+/** Handwriting scale shared by both wrappers. */
+const bodyClass = 'font-hand text-[20px] leading-[1.35] md:text-[22px]';
 
 /**
  * The shadow is the whole trick: a real sticky note is only adhered along its
@@ -35,6 +45,7 @@ export function StickyNote({
   tone = 'amber',
   tilt = -2,
   className,
+  asBlock = false,
 }: StickyNoteProps) {
   return (
     <div
@@ -52,9 +63,11 @@ export function StickyNote({
         aria-hidden="true"
         className="absolute -top-2 left-1/2 h-5 w-16 -translate-x-1/2 -rotate-2 bg-[var(--tape)] opacity-80 shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
       />
-      <p className="font-hand text-[20px] leading-[1.35] md:text-[22px]">
-        {children}
-      </p>
+      {asBlock ? (
+        <div className={bodyClass}>{children}</div>
+      ) : (
+        <p className={bodyClass}>{children}</p>
+      )}
     </div>
   );
 }

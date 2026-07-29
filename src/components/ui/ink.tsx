@@ -85,6 +85,40 @@ export function InkCircle({
   );
 }
 
+/**
+ * Grader's tick. Two strokes rather than one polyline: a real check is a fast
+ * down-stroke and a longer up-stroke, and drawing them separately lets the dash
+ * animation land the same way — short flick, then the long tail.
+ */
+export function InkCheck({ className, length = 90, delayMs = 620 }: InkProps) {
+  const { ref, style, pathClass } = useInkAnimation(length, delayMs);
+  return (
+    <svg
+      ref={ref}
+      aria-hidden="true"
+      viewBox="0 0 44 44"
+      fill="none"
+      className={cn('pointer-events-none absolute', className)}
+      style={style}
+    >
+      <path
+        d="M5 22.5c3.4 2.1 6.6 5.4 9.1 9.6"
+        stroke="currentColor"
+        strokeWidth="3.1"
+        strokeLinecap="round"
+        className={pathClass}
+      />
+      <path
+        d="M13.4 32.4C18.1 21 26.4 11.4 37.5 5.2"
+        stroke="currentColor"
+        strokeWidth="3.1"
+        strokeLinecap="round"
+        className={pathClass}
+      />
+    </svg>
+  );
+}
+
 type ArrowDirection = 'down-right' | 'down-left' | 'right' | 'up-right';
 
 const arrowPaths: Record<ArrowDirection, { d: string; head: string }> = {

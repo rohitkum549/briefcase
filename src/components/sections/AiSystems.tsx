@@ -15,18 +15,20 @@ export function AiSystems() {
         <div className="mb-2.5 flex items-center gap-2.5">
           <span className="size-2 rounded-sm bg-accent-brand" />
           <span className="font-mono text-[11px] font-medium tracking-[2px] text-muted-foreground uppercase">
-            AI systems
+            AI-assisted engineering
           </span>
         </div>
         <h2 className="mb-5 max-w-3xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight md:text-[40px]">
-          Designing AI features that are grounded, observable and shippable.
+          AI as engineering leverage — spec-driven, tool-grounded, durable.
         </h2>
         <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground text-pretty">
-          Anyone can call an LLM — the engineering is in everything around it.
-          Retrieval that keeps answers grounded, prompts and context windows
-          that stay within budget, tool-calling that&apos;s typed and safe, and
-          evaluations that catch regressions before users do. I design AI as
-          systems, not demos.
+          Anyone can prompt a model — the engineering is in what it&apos;s
+          allowed to touch. Every change starts as a written spec, the agent
+          acts through typed MCP servers wired to real systems rather than
+          guessing, and anything with more than a few steps runs as a durable
+          Temporal or Zigflow workflow that can resume instead of restart. The
+          work that recurs becomes a reusable skill. That&apos;s the difference
+          between a workflow and a party trick.
         </p>
 
         {isLoading || !content ? (
@@ -39,7 +41,7 @@ export function AiSystems() {
               <div className="mb-5 flex items-center gap-2">
                 <span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
                 <span className="font-mono text-[11px] tracking-[1.5px] text-on-deep/60 uppercase">
-                  Reference request flow
+                  How a change ships
                 </span>
               </div>
               <div className="flex flex-col items-stretch gap-2 md:flex-row md:gap-0">

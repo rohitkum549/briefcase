@@ -18,6 +18,8 @@ export const navLinks: NavLink[] = [
   { id: 'stack', label: 'Stack', href: '#stack' },
   { id: 'ai', label: 'AI', href: '#ai' },
   { id: 'experience', label: 'Experience', href: '#experience' },
+  // Goes live with the CurrentlyShipping section — see portfolioData.ts.
+  // { id: 'now', label: 'Now', href: '#now' },
 ];
 
 export const socialLinks: SocialLink[] = [

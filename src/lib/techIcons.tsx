@@ -14,6 +14,14 @@ import {
   SiCoolify,
   SiJira,
   SiHtml5,
+  SiSupabase,
+  SiKeycloak,
+  SiClaude,
+  SiOpentelemetry,
+  SiRedis,
+  SiLinux,
+  SiNginx,
+  SiTailwindcss,
 } from 'react-icons/si';
 
 type IconComponent = ComponentType<{ className?: string }>;
@@ -36,9 +44,21 @@ const iconsByName: Record<string, IconComponent> = {
   COOLIFY: SiCoolify,
   JIRA: SiJira,
   'HTML & CSS': SiHtml5,
+  SUPABASE: SiSupabase,
+  KEYCLOAK: SiKeycloak,
+  'CLAUDE CODE': SiClaude,
+  OPENTELEMETRY: SiOpentelemetry,
+  REDIS: SiRedis,
+  LINUX: SiLinux,
+  NGINX: SiNginx,
+  'TAILWIND CSS': SiTailwindcss,
 };
 
-/** No official brand icon shipped in react-icons/simple-icons for these — rendered as monogram badges instead. */
+/**
+ * No official brand icon shipped in react-icons/simple-icons for these —
+ * rendered as monogram badges instead. Notably APISIX, SigNoz, Zigflow and
+ * Playwright (`SiPlaywright` does not exist in react-icons 5.x).
+ */
 export function getTechIcon(name: string): IconComponent | null {
   return iconsByName[name.trim().toUpperCase()] ?? null;
 }

@@ -5,6 +5,7 @@ import type { CapabilityGroup } from '@/types/capability';
 import type { AiStage, AiPrinciple } from '@/types/ai-system';
 import type { ExperienceEntry } from '@/types/experience';
 import type { AboutFact } from '@/types/about';
+import type { CurrentlyShippingItem } from '@/types/currently-shipping';
 
 /*
  * ┌─────────────────────────────────────────────────────────────────────────┐
@@ -14,12 +15,17 @@ import type { AboutFact } from '@/types/about';
  * │  Replace each one with your real figure (or soften the claim) before    │
  * │  this résumé goes to a recruiter. Search this file for these values:    │
  * │                                                                         │
- * │    heroContent.stats   12+ platforms · 40+ services · 99.9% uptime      │
+ * │    heroContent.stats   12+ platforms · 99.9% uptime                     │
  * │    experience/cateina  4 platforms · 12k MAU · p95 820ms→450ms ·        │
  * │                        6 services · 30+ endpoints · 90% retry work ·    │
  * │                        MTTR hours→20min · 15+ deploys/week · 4 mentees  │
- * │    experience/early    20+ features · build time 60% · 3 teams          │
+ * │    experience/early    20+ features · build time 60%                    │
  * │    projects[].impact   every figure                                     │
+ * │                                                                         │
+ * │  One CLAIM also needs your sign-off, not just a number:                 │
+ * │    experience/early bullet 3 — rewritten away from the old (inaccurate) │
+ * │    RAG-assistant claim. Confirm it matches what you actually did in     │
+ * │    2023–24, or replace it outright.                                     │
  * │                                                                         │
  * │  Anything you can't stand behind in an interview, cut. A vague true     │
  * │  bullet beats a precise one you can't defend.                           │
@@ -30,7 +36,7 @@ export const heroContent: HeroContent = {
   eyebrow: 'Senior full-stack engineer · Distributed systems · AI platforms',
   heading: 'I architect systems that survive production.',
   description:
-    "I'm Rohit — a senior full-stack engineer who owns delivery end to end: React 19 and TypeScript on the front, Node.js services behind an APISIX gateway, durable Temporal workflows for anything that must not fail, and OpenTelemetry tracing so we find problems before users report them. I lead the AI layer, set the standards my team codes to, and care most about the decisions that never show up in a screenshot.",
+    "I'm Rohit — a senior full-stack engineer who owns delivery end to end: React 19 and TypeScript on the front, Node.js services behind an APISIX gateway, durable Temporal and Zigflow workflows for anything that must not fail, and OpenTelemetry tracing so we find problems before users report them. I run our AI-assisted delivery layer — spec-driven development with Claude Code and Spec Kit over an integrated Model Context Protocol (MCP) toolchain — set the standards my team codes to, and care most about the decisions that never show up in a screenshot.",
   stats: [
     { id: 'years', value: '3+', label: 'Years in production' },
     { id: 'systems', value: '12+', label: 'Platforms shipped' },
@@ -58,10 +64,10 @@ export const services: Service[] = [
     body: 'Containerized services, gateway-managed traffic and CI/CD pipelines that make deploys boring. Distributed tracing and RED-metric dashboards wired in from day one — because you cannot operate what you cannot see, and MTTR is a design decision.',
   },
   {
-    id: 'ai-llm',
+    id: 'ai-engineering',
     no: '04',
-    title: 'AI & LLM systems',
-    body: 'Retrieval-augmented assistants and tool-calling agents grounded in your data, orchestrated as durable workflows, evaluated against test sets and bounded by token and latency budgets. Systems, not demos — with the guardrails that distinction implies.',
+    title: 'AI-assisted engineering',
+    body: 'Spec-driven delivery with Claude Code and Spec Kit — wireframe to shipped UI — over a Model Context Protocol toolchain where Keycloak, APISIX, GitLab, Playwright, Supabase, SigNoz and Zigflow are all callable from one place. Multi-step processes like employee onboarding and offboarding run as durable Temporal and Zigflow workflows, and the work that repeats gets packaged as a reusable skill so it executes identically every time instead of being rebuilt by hand.',
   },
 ];
 
@@ -103,22 +109,23 @@ export const projects: Project[] = [
     impact: 'MTTR down from hours to under 20 minutes',
   },
   {
-    id: 'rag-assistant',
+    id: 'mcp-toolchain',
     index: '05',
     kind: 'AI',
-    title: 'RAG knowledge assistant',
-    desc: 'Retrieval-augmented chat over internal documentation — chunking strategy, embeddings, vector search and an orchestration layer returning grounded answers with citations back to source.',
-    tags: ['LLM', 'RAG', 'Vector search', 'Evals'],
-    impact: 'Adopted by 3 internal teams as first-line support',
+    title: 'MCP-orchestrated delivery toolchain',
+    desc: 'Seven MCP servers — Keycloak, APISIX, GitLab, Playwright, Supabase, SigNoz and Zigflow — wired into one agent-driven pipeline, with GitLab MCP triggering deploys across services and Playwright MCP exercising the UI before a release goes out.',
+    tags: ['MCP', 'Claude Code', 'Spec Kit', 'GitLab CI/CD'],
+    impact:
+      'Spec to deployed, UI-verified release without leaving the terminal',
   },
   {
-    id: 'agentic-workflow',
+    id: 'joiner-leaver-workflows',
     index: '06',
     kind: 'AI',
-    title: 'Agentic workflow engine',
-    desc: 'Tool-calling agents that decompose multi-step tasks onto Temporal, invoke typed APIs with schema validation, and self-check outputs against an eval suite before responding.',
-    tags: ['Agents', 'Temporal', 'Tool calling'],
-    impact: 'Automated a 12-step manual onboarding process',
+    title: 'Employee onboarding & offboarding automation',
+    desc: 'Joiner and leaver pipelines running as durable Temporal and Zigflow workflows — Keycloak account provisioning, access grants, asset assignment and revocation — with every step idempotent and independently retryable so a partial failure resumes instead of restarting.',
+    tags: ['Temporal', 'Zigflow', 'Keycloak', 'Idempotency'],
+    impact: 'Replaced a 12-step manual checklist with one durable run',
   },
 ];
 
@@ -168,84 +175,85 @@ export const capabilities: CapabilityGroup[] = [
     group: 'Data',
     items: [
       'PostgreSQL',
+      'Supabase',
       'MongoDB',
+      'Redis',
       'Schema design',
       'Query optimization',
-      'Redis',
     ],
   },
   {
     id: 'ai',
-    group: 'AI & LLM',
+    group: 'AI-assisted engineering',
     items: [
-      'LLM integration',
-      'RAG pipelines',
-      'Vector search',
-      'Prompt engineering',
+      'Claude Code',
+      'Spec-driven development',
+      'MCP integration',
       'Agent orchestration',
-      'Evals',
+      'LLM tool calling',
+      'Workflow automation',
     ],
   },
 ];
 
 export const aiStages: AiStage[] = [
   {
-    id: 'client',
+    id: 'spec',
     step: '01',
-    label: 'CLIENT',
-    title: 'User query',
-    sub: 'Chat / UI',
+    label: 'SPEC',
+    title: 'Written spec',
+    sub: 'Spec Kit · versioned',
   },
   {
-    id: 'gateway',
+    id: 'agent',
     step: '02',
-    label: 'GATEWAY',
-    title: 'Routing & auth',
-    sub: 'Rate limits',
+    label: 'AGENT',
+    title: 'Claude Code',
+    sub: 'Wireframe to UI',
   },
   {
-    id: 'orchestrator',
+    id: 'mcp',
     step: '03',
-    label: 'ORCHESTRATOR',
-    title: 'LLM + context',
-    sub: 'Prompt · tools',
+    label: 'MCP LAYER',
+    title: 'Typed tool calls',
+    sub: '7 servers · real systems',
   },
   {
-    id: 'retrieval',
+    id: 'orchestration',
     step: '04',
-    label: 'RETRIEVAL',
-    title: 'Vector search',
-    sub: 'Embeddings · KB',
+    label: 'ORCHESTRATION',
+    title: 'Temporal · Zigflow',
+    sub: 'Durable · idempotent',
   },
   {
-    id: 'response',
+    id: 'delivery',
     step: '05',
-    label: 'RESPONSE',
-    title: 'Grounded answer',
-    sub: 'Cited · evaluated',
+    label: 'DELIVERY',
+    title: 'Deploy via GitLab MCP',
+    sub: 'Traced in SigNoz',
   },
 ];
 
 export const aiPrinciples: AiPrinciple[] = [
   {
-    id: 'grounded',
-    title: 'Grounded',
-    body: 'Retrieval-backed, cited answers — never free-floating hallucination.',
+    id: 'spec-driven',
+    title: 'Spec-driven',
+    body: 'Every change starts as a written, reviewable spec — not a prompt guess.',
   },
   {
-    id: 'evaluated',
-    title: 'Evaluated',
-    body: 'Test sets and regression checks gate every prompt change.',
+    id: 'tool-grounded',
+    title: 'Tool-grounded',
+    body: 'Agents act through typed MCP servers against real systems, never blind shell commands.',
   },
   {
-    id: 'guardrailed',
-    title: 'Guardrailed',
-    body: 'Input validation, typed tool calls and graceful fallbacks.',
+    id: 'durable',
+    title: 'Durable',
+    body: 'Multi-step processes run on Temporal and Zigflow: retryable, resumable, idempotent.',
   },
   {
-    id: 'efficient',
-    title: 'Efficient',
-    body: 'Token, latency and cost budgets tracked as first-class metrics.',
+    id: 'repeatable',
+    title: 'Repeatable',
+    body: 'Work that recurs becomes a reusable skill, so it runs identically every time.',
   },
 ];
 
@@ -265,12 +273,15 @@ export const experience: ExperienceEntry[] = [
       'Temporal',
       'Docker',
       'OpenTelemetry',
+      'Zigflow',
+      'MCP',
     ],
     points: [
       'Architected and shipped 4 production platforms on React 19, TypeScript and Node.js serving 12k+ monthly active users — owning every layer from data model to deployment.',
       'Cut p95 API latency 45% (820ms → 450ms) across 30+ PostgreSQL-backed endpoints by eliminating N+1 queries, adding targeted indexes and introducing connection pooling with response caching.',
       'Consolidated 6 microservices behind an APISIX API gateway with centralized JWT authentication, rate limiting and request tracing — removing duplicated auth logic from every service.',
-      'Eliminated ~90% of manual retry intervention by migrating payment and onboarding flows to durable Temporal workflows with idempotent activities and automated compensation.',
+      'Eliminated ~90% of manual retry intervention by migrating payment and employee onboarding/offboarding flows to durable Temporal and Zigflow workflows with idempotent activities and automated compensation.',
+      'Built the team’s AI-assisted delivery workflow — spec-driven development with Claude Code and Spec Kit over seven integrated Model Context Protocol (MCP) servers (Keycloak, APISIX, GitLab, Playwright, Supabase, SigNoz, Zigflow) — and packaged recurring engineering processes as reusable skills so migrations and onboarding run identically every time.',
       'Drove OpenTelemetry and SigNoz adoption across the org — distributed tracing, RED-metric dashboards and ownership-routed alerting cut mean time to resolution from hours to under 20 minutes.',
       'Reduced release cycle from weekly manual pushes to 15+ automated deploys per week via GitLab CI/CD, Docker multi-stage builds and Coolify environment parity.',
       'Mentor 4 engineers and lead code review, establishing the TypeScript, testing and API-design standards now applied to every new service.',
@@ -286,7 +297,9 @@ export const experience: ExperienceEntry[] = [
     points: [
       'Delivered 20+ features across fintech, SaaS and internal tooling in React, TypeScript and Node.js — contract-tested and documented with Postman collections adopted as the team reference.',
       'Decomposed a monolith into containerized services, cutting build times 60% and unblocking independent team deploys.',
-      'Built the company’s first production LLM feature — a retrieval-augmented assistant over internal docs with vector search and citation grounding — adopted by 3 internal teams.',
+      // Rewritten away from an inaccurate RAG claim — confirm this matches your
+      // actual 2023–24 work before sending, or replace it outright.
+      'Owned front-end delivery for client-facing dashboards — a reusable component library, form-validation and state-management patterns that later teams extended rather than rewrote.',
     ],
   },
   {
@@ -310,6 +323,16 @@ export const aboutFacts: AboutFact[] = [
   { id: 'languages', label: 'Languages', value: 'English · Hindi · Bengali' },
   { id: 'currently', label: 'Currently', value: 'Senior Full-Stack @ Cateina' },
 ];
+
+/*
+ * Reserved slot for in-flight work — see CurrentlyShipping.tsx. The section is
+ * built but deliberately not mounted in App.tsx yet: an empty section on a live
+ * portfolio reads as unfinished, so it stays off until there's real content.
+ *
+ * To go live: fill this array, uncomment the <CurrentlyShipping /> line in
+ * App.tsx and the matching navLinks entry in config/site.ts. Nothing else.
+ */
+export const currentlyShipping: CurrentlyShippingItem[] = [];
 
 /** Handwritten sticky notes in the About section — the human layer. */
 export const stickyNotes = [
@@ -336,6 +359,7 @@ export const stackTags = [
   'NODE.JS',
   'EXPRESS',
   'POSTGRESQL',
+  'SUPABASE',
   'MONGODB',
   'REDIS',
   'DOCKER',
@@ -345,6 +369,8 @@ export const stackTags = [
   'OPENTELEMETRY',
   'SIGNOZ',
   'ZIGFLOW',
+  'KEYCLOAK',
+  'CLAUDE CODE',
   'POSTMAN',
   'GIT',
   'GITLAB',
