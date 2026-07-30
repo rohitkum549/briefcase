@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { AiSystemsSkeleton } from '@/components/skeletons/AiSystemsSkeleton';
+import { StickyNote } from '@/components/ui/sticky-note';
 import { useAiSystemContent } from '@/hooks/useAiSystemContent';
 
 export function AiSystems() {
@@ -21,15 +22,20 @@ export function AiSystems() {
         <h2 className="mb-5 max-w-3xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight md:text-[40px]">
           AI as engineering leverage — spec-driven, tool-grounded, durable.
         </h2>
-        <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground text-pretty">
-          Anyone can prompt a model — the engineering is in what it&apos;s
-          allowed to touch. Every change starts as a written spec, the agent
-          acts through typed MCP servers wired to real systems rather than
-          guessing, and anything with more than a few steps runs as a durable
-          Temporal or Zigflow workflow that can resume instead of restart. The
-          work that recurs becomes a reusable skill. That&apos;s the difference
-          between a workflow and a party trick.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-8">
+          <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground text-pretty">
+            Anyone can prompt a model — the engineering is in what it&apos;s
+            allowed to touch. Every change starts as a written spec, the agent
+            acts through typed MCP servers wired to real systems rather than
+            guessing, and anything with more than a few steps runs as a durable
+            Temporal or Zigflow workflow that can resume instead of restart. The
+            work that recurs becomes a reusable skill. That&apos;s the
+            difference between a workflow and a party trick.
+          </p>
+          <StickyNote tone="pink" tilt={2.5} className="max-w-[200px]">
+            This is how this very portfolio got built, start to finish.
+          </StickyNote>
+        </div>
 
         {isLoading || !content ? (
           <div className="mt-12">

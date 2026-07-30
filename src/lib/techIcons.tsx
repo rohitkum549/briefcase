@@ -1,27 +1,27 @@
 import type { ComponentType } from 'react';
 import {
   SiReact,
+  SiNextdotjs,
+  SiAngular,
   SiTypescript,
+  SiShadcnui,
+  SiTailwindcss,
   SiNodedotjs,
   SiExpress,
+  SiPostgresql,
+  SiSupabase,
+  SiTemporal,
+  SiKeycloak,
+  SiKuma,
   SiDocker,
   SiGit,
   SiGitlab,
-  SiPostgresql,
-  SiMongodb,
-  SiPostman,
-  SiTemporal,
   SiCoolify,
+  SiPostman,
   SiJira,
-  SiHtml5,
-  SiSupabase,
-  SiKeycloak,
   SiClaude,
   SiOpentelemetry,
-  SiRedis,
-  SiLinux,
-  SiNginx,
-  SiTailwindcss,
+  SiHtml5,
 } from 'react-icons/si';
 
 type IconComponent = ComponentType<{ className?: string }>;
@@ -30,34 +30,39 @@ type IconComponent = ComponentType<{ className?: string }>;
 const iconsByName: Record<string, IconComponent> = {
   REACT: SiReact,
   'REACT 19': SiReact,
+  'NEXT.JS': SiNextdotjs,
+  ANGULAR: SiAngular,
+  'ANGULAR 19': SiAngular,
   TYPESCRIPT: SiTypescript,
+  SHADCN: SiShadcnui,
+  'TAILWIND CSS': SiTailwindcss,
   'NODE.JS': SiNodedotjs,
+  'NODE.JS V22': SiNodedotjs,
   EXPRESS: SiExpress,
   'EXPRESS.JS': SiExpress,
+  POSTGRESQL: SiPostgresql,
+  SUPABASE: SiSupabase,
+  TEMPORAL: SiTemporal,
+  KEYCLOAK: SiKeycloak,
+  KUMA: SiKuma,
   DOCKER: SiDocker,
   GIT: SiGit,
   GITLAB: SiGitlab,
-  POSTGRESQL: SiPostgresql,
-  MONGODB: SiMongodb,
-  POSTMAN: SiPostman,
-  TEMPORAL: SiTemporal,
   COOLIFY: SiCoolify,
+  POSTMAN: SiPostman,
   JIRA: SiJira,
-  'HTML & CSS': SiHtml5,
-  SUPABASE: SiSupabase,
-  KEYCLOAK: SiKeycloak,
   'CLAUDE CODE': SiClaude,
   OPENTELEMETRY: SiOpentelemetry,
-  REDIS: SiRedis,
-  LINUX: SiLinux,
-  NGINX: SiNginx,
-  'TAILWIND CSS': SiTailwindcss,
+  'HTML & CSS': SiHtml5,
 };
 
 /**
- * No official brand icon shipped in react-icons/simple-icons for these —
- * rendered as monogram badges instead. Notably APISIX, SigNoz, Zigflow and
- * Playwright (`SiPlaywright` does not exist in react-icons 5.x).
+ * No official brand icon shipped in react-icons/simple-icons for these — they
+ * fall through to a monogram badge instead: APISIX, SigNoz, Zigflow, Lago and
+ * Playwright (`SiPlaywright` and `SiLago` do not exist in react-icons 5.x).
+ *
+ * MongoDB, Redis and Nginx were removed along with the capability items that
+ * referenced them — those were never part of Rohit's actual stack.
  */
 export function getTechIcon(name: string): IconComponent | null {
   return iconsByName[name.trim().toUpperCase()] ?? null;

@@ -4,7 +4,11 @@ import type { NavLink } from '@/types/nav';
 
 export const siteConfig: SiteConfig = {
   name: env.siteName,
-  role: 'Senior Full-Stack Engineer',
+  // Matches his public LinkedIn headline. His formal HR title at Cateina is
+  // Junior Software Developer, so "Senior" here would contradict the first
+  // thing a recruiter checks.
+  role: 'Full-Stack Engineer',
+  discipline: 'Fintech & Open Banking',
   location: 'Mumbai, India',
   email: env.contactEmail,
   phone: env.contactPhone,

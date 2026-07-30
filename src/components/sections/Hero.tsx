@@ -22,19 +22,22 @@ function DeveloperCodeCard() {
         {'\n'} name:{' '}
         <span className="text-[#8FD98A]">&quot;Rohit Kumar Jha&quot;</span>,
         {'\n'} role:{' '}
-        <span className="text-[#8FD98A]">&quot;Senior Full-Stack&quot;</span>,
-        {'\n'} based:{' '}
+        <span className="text-[#8FD98A]">&quot;Full-Stack Engineer&quot;</span>,
+        {'\n'} domain:{' '}
+        <span className="text-[#8FD98A]">
+          &quot;Fintech · Open Banking&quot;
+        </span>
+        ,{'\n'} based:{' '}
         <span className="text-[#8FD98A]">&quot;Mumbai, India&quot;</span>,{'\n'}{' '}
-        stack: [<span className="text-[#8FD98A]">&quot;React 19&quot;</span>,{' '}
+        frontend: [<span className="text-[#8FD98A]">&quot;React 19&quot;</span>,{' '}
+        <span className="text-[#8FD98A]">&quot;Next.js&quot;</span>,{' '}
+        <span className="text-[#8FD98A]">&quot;Angular 19&quot;</span>],
+        {'\n'} backend: [
         <span className="text-[#8FD98A]">&quot;Node.js&quot;</span>,{' '}
-        <span className="text-[#8FD98A]">&quot;TypeScript&quot;</span>],
-        {'\n'} infra: [
-        <span className="text-[#8FD98A]">&quot;Docker&quot;</span>,{' '}
-        <span className="text-[#8FD98A]">&quot;Coolify&quot;</span>,{' '}
-        <span className="text-[#8FD98A]">&quot;APISIX&quot;</span>,{' '}
-        <span className="text-[#8FD98A]">&quot;SigNoz&quot;</span>],
-        {'\n'} leads:{' '}
-        <span className="text-[#8FD98A]">&quot;architecture & AI&quot;</span>,
+        <span className="text-[#8FD98A]">&quot;Postgres&quot;</span>,{' '}
+        <span className="text-[#8FD98A]">&quot;Temporal&quot;</span>],
+        {'\n'} built:{' '}
+        <span className="text-[#8FD98A]">&quot;Lynqx, from scratch&quot;</span>,
         {'\n'} years: <span className="text-[#C9A2FF]">3</span>,{'\n'} status:{' '}
         <span className="text-[#8FD98A]">&quot;shipping&quot;</span>{' '}
         <span className="text-[#4ADE80]">●</span>
