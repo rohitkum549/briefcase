@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { StickyNote } from '@/components/ui/sticky-note';
 import { useContactForm } from '@/hooks/useContactForm';
 import { siteConfig, socialLinks } from '@/config/site';
 
@@ -17,7 +18,22 @@ export function Contact() {
     useContactForm();
 
   return (
-    <section id="contact" className="bg-deep py-20 text-on-deep md:py-24">
+    <section
+      id="contact"
+      className="relative bg-deep py-20 text-on-deep md:py-24"
+    >
+      {/*
+        The note lives in the side gutter, not the flow: this section is a
+        centered max-w-3xl column, so dropping a rotated note into it would
+        break the symmetry the CTA depends on. At xl the gutters are ~256px, so
+        there's real room beside the column — below that it's hidden rather than
+        squeezed.
+      */}
+      <div className="pointer-events-none absolute top-[24%] left-[5%] hidden xl:block">
+        <StickyNote tone="amber" tilt={-3.5} className="max-w-[196px]">
+          Fastest reply is email. I actually read it.
+        </StickyNote>
+      </div>
       <div className="mx-auto w-full max-w-3xl px-5 text-center md:px-10">
         <div className="mb-6 flex items-center justify-center gap-2.5">
           <span className="size-2.5 rounded-sm bg-accent-brand" />
@@ -29,8 +45,8 @@ export function Contact() {
           Let&apos;s build something worth shipping.
         </h2>
         <p className="mx-auto mb-10 max-w-md text-lg leading-relaxed text-on-deep/82">
-          Open to senior and staff engineering roles, and to advising teams on
-          architecture and AI. The fastest way to reach me is email.
+          Open to remote roles (US, EU, global) in fintech, payments and
+          platform engineering. The fastest way to reach me is email.
         </p>
 
         <div className="mb-10 flex flex-wrap justify-center gap-3.5">

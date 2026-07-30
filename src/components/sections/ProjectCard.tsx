@@ -1,5 +1,6 @@
 import { Boxes } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { ProjectVisual } from '@/components/charts/ProjectVisual';
 import type { Project } from '@/types/project';
 import type { ComponentPropsWithoutRef } from 'react';
 import { cn } from '@/lib/utils';
@@ -21,11 +22,20 @@ export function ProjectCard({
       )}
       {...props}
     >
-      <div className="flex aspect-video flex-col items-center justify-center gap-2.5 border-b bg-muted/60">
-        <Boxes className="size-6 text-accent-brand/60" strokeWidth={1.4} />
-        <span className="font-mono text-[10px] tracking-[1.5px] text-muted-foreground uppercase">
-          Project preview
-        </span>
+      {/* Same slot geometry as before — aspect-video, border-b, muted wash.
+          Only the contents changed: a visual specific to this project instead of
+          the identical placeholder every card used to show. */}
+      <div className="flex aspect-video flex-col items-center justify-center gap-2.5 border-b bg-muted/60 p-4">
+        {project.visual ? (
+          <ProjectVisual variant={project.visual} />
+        ) : (
+          <>
+            <Boxes className="size-6 text-accent-brand/60" strokeWidth={1.4} />
+            <span className="font-mono text-[10px] tracking-[1.5px] text-muted-foreground uppercase">
+              Project preview
+            </span>
+          </>
+        )}
       </div>
       <div className="p-7">
         <div className="mb-3 flex items-center justify-between">

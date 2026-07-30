@@ -1,5 +1,6 @@
 import { ProjectsSkeleton } from '@/components/skeletons/ProjectsSkeleton';
 import { ProjectCard } from '@/components/sections/ProjectCard';
+import { StickyNote } from '@/components/ui/sticky-note';
 import { useProjects } from '@/hooks/useProjects';
 
 export function Projects() {
@@ -17,15 +18,21 @@ export function Projects() {
               </span>
             </div>
             <h2 className="max-w-xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight md:text-[40px]">
-              Things I&apos;ve designed, built and shipped.
+              Platforms I built from scratch — and the ones I kept alive.
             </h2>
           </div>
-          <a
-            href="#contact"
-            className="font-mono text-xs tracking-wider text-muted-foreground uppercase"
-          >
-            All projects →
-          </a>
+          <div className="flex flex-col items-end gap-4">
+            <StickyNote tone="teal" tilt={2} className="max-w-[218px]">
+              Fintech is a good teacher. Nothing here was allowed to fail
+              quietly.
+            </StickyNote>
+            <a
+              href="#contact"
+              className="font-mono text-xs tracking-wider text-muted-foreground uppercase"
+            >
+              All projects →
+            </a>
+          </div>
         </div>
 
         {isLoading || !projects ? (

@@ -1,4 +1,5 @@
 import { ServicesSkeleton } from '@/components/skeletons/ServicesSkeleton';
+import { StickyNote } from '@/components/ui/sticky-note';
 import { useServices } from '@/hooks/useServices';
 
 export function Services() {
@@ -16,10 +17,17 @@ export function Services() {
         <h2 className="mb-5 max-w-2xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight md:text-[40px]">
           From the first commit to production — with an AI layer on top.
         </h2>
-        <p className="max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
-          I work across the whole stack, so features don&apos;t stall at
-          handoffs. Four things I&apos;m hired to do well.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-8">
+          <p className="max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
+            Frontend is where I&apos;m strongest, but fintech doesn&apos;t let
+            you stop at the API boundary — so I own the feature end to end. Four
+            things I&apos;m hired to do well.
+          </p>
+          <StickyNote tone="amber" tilt={-2.5} className="max-w-[210px]">
+            Ask me about the third retry. That&apos;s where the real design
+            lives.
+          </StickyNote>
+        </div>
 
         <div className="mt-10">
           {isLoading || !services ? (
