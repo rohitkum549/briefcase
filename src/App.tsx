@@ -5,6 +5,7 @@ import { TechMarquee } from '@/components/sections/TechMarquee';
 import { Services } from '@/components/sections/Services';
 import { Projects } from '@/components/sections/Projects';
 import { Stack } from '@/components/sections/Stack';
+import { Certifications } from '@/components/sections/Certifications';
 import { AiSystems } from '@/components/sections/AiSystems';
 import { Experience } from '@/components/sections/Experience';
 import { About } from '@/components/sections/About';
@@ -21,6 +22,7 @@ function App() {
         <Services />
         <Projects />
         <Stack />
+        <Certifications />
         <AiSystems />
         <Experience />
         {/* Reserved slot — see components/sections/CurrentlyShipping.tsx.

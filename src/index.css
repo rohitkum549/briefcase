@@ -154,6 +154,26 @@
   }
 }
 
+/* Story-viewer progress segment filling over its dwell time. The viewer skips
+   this entirely under reduced motion — see useReducedMotion. */
+@keyframes story-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Hide the story rail's scrollbar without disabling scrolling. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Hand-drawn SVG accents draw themselves in when scrolled into view. */
 @keyframes draw-on {
   from {

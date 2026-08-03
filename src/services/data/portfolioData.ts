@@ -87,7 +87,7 @@ export const projects: Project[] = [
     title: 'Lynqx — Open Banking platform',
     desc: 'Built from scratch. A financial connectivity and research platform linking banks, institutions and third-party services across the US, EU and APAC — so teams can evaluate and compare Open Banking providers on payments, financial data access, corporate treasury and scalability.',
     tags: ['React 19', 'Node.js', 'Temporal', 'PostgreSQL'],
-    impact: 'The platform the Tech Ninja Pro award was given for',
+    impact: 'Built from scratch — US, EU and APAC connectivity',
     visual: 'integration-mesh',
   },
   {
@@ -265,13 +265,29 @@ export const aiPrinciples: AiPrinciple[] = [
 ];
 
 /**
- * Award line, shown on the site and as a single résumé line. Kept separate from
- * the experience bullets so it can lead the résumé's highlights band.
+ * The award. It leads the Recognition section on the site and gets its own
+ * résumé section, because it is the only credential here that an employer
+ * awarded rather than a course issuing on completion.
+ *
+ * Every field is read off the certificate Rohit received — including `citation`,
+ * which is verbatim. An earlier revision of this file attributed the award to
+ * "ownership and technical contribution on Lynqx"; the certificate says
+ * otherwise, and the certificate is the source.
  */
 export const award = {
   title: 'Tech Ninja Pro',
   org: 'Cateina Technologies',
-  reason: 'ownership and technical contribution on the Lynqx platform',
+  issuedOn: '1 February 2026',
+  shortDate: 'Feb 2026',
+  signedBy: 'Rajish Rajan',
+  signedByRole: 'Chief Executive Officer',
+  /** Verbatim from the certificate. */
+  citation: 'For integrating AI workflows and introducing automation.',
+  /** Lower-case fragment for mid-sentence use (résumé, experience bullet). */
+  reason: 'integrating AI workflows and introducing automation',
+  /** Rohit's own announcement — the closest thing to a public verify link. */
+  postUrl:
+    'https://www.linkedin.com/feed/update/urn:li:activity:7424189876302028800/',
 };
 
 export const experience: ExperienceEntry[] = [
@@ -297,7 +313,7 @@ export const experience: ExperienceEntry[] = [
     ],
     points: [
       'Three production platforms in one role — Lynqx, EPS and Starfish — across Open Banking, card payments and embedded finance.',
-      'Awarded Tech Ninja Pro for ownership and technical contribution on Lynqx.',
+      'Awarded Tech Ninja Pro for integrating AI workflows and introducing automation.',
     ],
     projects: [
       {
@@ -340,10 +356,12 @@ export const experience: ExperienceEntry[] = [
     company: 'Zeqon Technologies Pvt Ltd',
     span: { from: 2023.25, to: 2023.99 },
     stack: ['Angular', 'JavaScript', 'HTML & CSS'],
+    // Strongest first. The résumé caps how many bullets it prints per role, so
+    // the order here decides what survives the cut — see resumeService.
     points: [
       'Cut page load times by 56% through more efficient coding practices and front-end performance work.',
-      'Built dynamic, interactive interfaces in Angular, improving the overall user experience.',
       'Designed and delivered 10+ websites in Angular, JavaScript, HTML and CSS — Eduwego.in the flagship build.',
+      'Built dynamic, interactive interfaces in Angular, improving the overall user experience.',
     ],
   },
   {

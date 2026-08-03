@@ -22,6 +22,8 @@ import {
   SiClaude,
   SiOpentelemetry,
   SiHtml5,
+  SiUdemy,
+  SiHackerrank,
 } from 'react-icons/si';
 
 type IconComponent = ComponentType<{ className?: string }>;
@@ -54,12 +56,16 @@ const iconsByName: Record<string, IconComponent> = {
   'CLAUDE CODE': SiClaude,
   OPENTELEMETRY: SiOpentelemetry,
   'HTML & CSS': SiHtml5,
+  // Certification issuers.
+  UDEMY: SiUdemy,
+  HACKERRANK: SiHackerrank,
 };
 
 /**
  * No official brand icon shipped in react-icons/simple-icons for these — they
- * fall through to a monogram badge instead: APISIX, SigNoz, Zigflow, Lago and
- * Playwright (`SiPlaywright` and `SiLago` do not exist in react-icons 5.x).
+ * fall through to a monogram badge instead: APISIX, SigNoz, Zigflow, Lago,
+ * Simplilearn and Playwright (`SiPlaywright`, `SiLago` and `SiSimplilearn` do
+ * not exist in react-icons 5.x — each export was checked before importing).
  *
  * MongoDB, Redis and Nginx were removed along with the capability items that
  * referenced them — those were never part of Rohit's actual stack.
