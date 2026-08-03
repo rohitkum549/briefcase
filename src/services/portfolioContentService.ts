@@ -6,8 +6,10 @@ import type { AiStage, AiPrinciple } from '@/types/ai-system';
 import type { ExperienceEntry } from '@/types/experience';
 import type { AboutFact } from '@/types/about';
 import type { CurrentlyShippingItem } from '@/types/currently-shipping';
+import type { Certification } from '@/types/certification';
 import { simulateNetwork } from '@/services/network';
 import * as data from '@/services/data/portfolioData';
+import { certifications } from '@/services/data/certificationsData';
 
 export interface AboutContent {
   text: string;
@@ -43,6 +45,9 @@ export const portfolioContentService = {
   },
   getAbout(): Promise<AboutContent> {
     return simulateNetwork({ text: data.aboutText, facts: data.aboutFacts });
+  },
+  getCertifications(): Promise<Certification[]> {
+    return simulateNetwork(certifications);
   },
   getCurrentlyShipping(): Promise<CurrentlyShippingItem[]> {
     return simulateNetwork(data.currentlyShipping);

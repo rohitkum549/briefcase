@@ -12,6 +12,16 @@ const FONT_BODY = 9.6;
 const BULLET_INDENT = 10;
 const SUB_INDENT = 12;
 
+/*
+ * One page is a hard constraint, and the site is where the complete record
+ * lives — so the résumé prints the strongest bullets per block and stops. The
+ * data files order their points strongest-first for exactly this reason, which
+ * keeps the cut here positional and dumb rather than a second list of
+ * hand-maintained exceptions that silently drifts from the first.
+ */
+const MAX_PROJECT_BULLETS = 4;
+const MAX_ROLE_BULLETS = 2;
+
 type Rgb = readonly [number, number, number];
 const INK: Rgb = [26, 26, 26];
 const MUTED: Rgb = [110, 110, 110];
@@ -251,7 +261,7 @@ class ResumeWriter {
   }
 
   sectionHeading(title: string) {
-    this.gap(8);
+    this.gap(6);
     this.ensureSpace(24);
     this.doc.setFont('helvetica', 'bold');
     this.doc.setFontSize(9.4);
@@ -384,7 +394,7 @@ export function generateResumePdf(): jsPDF {
   w.highlightsBand([
     'Built Lynqx from scratch - Open Banking connectivity across the US, EU and APAC.',
     'Three production fintech platforms in one role: Open Banking, card payments, embedded finance.',
-    `${award.title} award at ${award.org} for ownership and technical contribution on Lynqx.`,
+    `${award.title} award at ${award.org} for ${award.reason}.`,
   ]);
 
   w.sectionHeading('Summary');
@@ -407,14 +417,45 @@ export function generateResumePdf(): jsPDF {
       // both of which the highlights band already says at the top of the page —
       // and a résumé that repeats itself twice in ten lines reads careless.
       if (!entry.projects?.length) {
-        entry.points.forEach((point) => w.bullet(point));
+        entry.points
+          .slice(0, MAX_ROLE_BULLETS)
+          .forEach((point) => w.bullet(point));
       }
       entry.projects?.forEach((project) => {
         w.gap(3);
         w.projectLine(project.name, project.kind);
-        project.points.forEach((point) => w.bullet(point, SUB_INDENT));
+        project.points
+          .slice(0, MAX_PROJECT_BULLETS)
+          .forEach((point) => w.bullet(point, SUB_INDENT));
       });
     });
+
+  /*
+   * The award earns its own section, above Education.
+   *
+   * It is the only credential here that an employer decided to give, so it does
+   * not belong in a list alongside course completions — and a named section
+   * header is also what an ATS keys on, where the same sentence buried in a
+   * bullet is just another line of prose.
+   *
+   * Only two certifications follow it. Thirteen would push the page over and
+   * would read as padding; the programme graduation and the timed HackerRank
+   * assessment are the two that carry information, and they bring the
+   * "Full Stack Java Developer" keyword with them. The full list lives on the
+   * site, where there is room for it.
+   */
+  w.sectionHeading('Awards & Certifications');
+  w.roleLine(`${award.title} — ${award.org}`, award.shortDate);
+  // The name alone means nothing outside Cateina, so the bullet says what kind
+  // of award it is before quoting the citation.
+  w.bullet(
+    `Employer award signed by the ${award.signedByRole} — "${award.citation}"`,
+  );
+  w.gap(2);
+  w.skillRow(
+    'Certifications',
+    "Full Stack Java Developer Master's Program, Simplilearn (2023, completed with distinction) · Java (Basic), HackerRank (2022)",
+  );
 
   const education = experience.find((entry) => entry.id === 'education');
   if (education) {

@@ -20,6 +20,7 @@ export const navLinks: NavLink[] = [
   { id: 'services', label: 'Services', href: '#services' },
   { id: 'work', label: 'Work', href: '#work' },
   { id: 'stack', label: 'Stack', href: '#stack' },
+  { id: 'recognition', label: 'Awards', href: '#recognition' },
   { id: 'ai', label: 'AI', href: '#ai' },
   { id: 'experience', label: 'Experience', href: '#experience' },
   // Goes live with the CurrentlyShipping section — see portfolioData.ts.
