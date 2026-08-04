@@ -19,10 +19,14 @@ import type { CurrentlyShippingItem } from '@/types/currently-shipping';
  * │  projects, the wrong university, and ~15 placeholder metrics. Do not    │
  * │  add a number here to fill a gap. If a claim has no source, cut it.     │
  * │                                                                         │
+ * │  The figures added for ATS scoring — 25+ institutions on Lynqx, 50K+    │
+ * │  ATM transactions a day, ~90% of manual reconciliation removed — and    │
+ * │  the stakeholder, mentoring and AI-tooling bullets on the Cateina role  │
+ * │  are all Rohit's own answers, confirmed directly. Nothing was inferred. │
+ * │                                                                         │
  * │  STILL NEEDS ROHIT'S CONFIRMATION:                                      │
  * │    · Location. LinkedIn's header says "Greater Kolkata Area" but the    │
  * │      Cateina role says Mumbai. Currently showing Mumbai.                │
- * │    · VITE_GITHUB_URL is unset, so the résumé prints a bare "github.com".│
  * │    · Role title shows "Full-Stack Engineer" (his LinkedIn headline).    │
  * │      His formal HR title is Junior Software Developer.                  │
  * └─────────────────────────────────────────────────────────────────────────┘
@@ -50,7 +54,7 @@ export const heroContent: HeroContent = {
  * résumé onto a second page.
  */
 export const resumeSummary =
-  'Full-stack engineer with 3+ years in fintech and Open Banking. Built Lynqx at Cateina from scratch — a connectivity platform integrating banks, institutions and third-party services across the US, EU and APAC — spanning 20+ reusable React 19 components, 30+ console screens and 10+ Node.js REST APIs. Strongest on the frontend, and comfortable owning a feature from schema to shipped screen.';
+  'Full-stack engineer with 3+ years in fintech, shipping three production platforms in one role — Open Banking connectivity, ATM payment processing and embedded finance. Took Lynqx from an empty repository to production, serving 25+ banks and institutions. Strongest on the frontend, owning features from schema to shipped screen across React 19, Node.js and PostgreSQL.';
 
 export const services: Service[] = [
   {
@@ -115,9 +119,9 @@ export const projects: Project[] = [
     index: '04',
     kind: 'Backend',
     title: 'Starfish — embedded finance platform',
-    desc: 'Security and core functional modules for an enterprise embedded-finance connectivity platform, enabling standardized financial data exchange between corporates and banks over compliant, API-driven workflows.',
-    tags: ['B2B SaaS', 'API security', 'Integrations'],
-    impact: 'Corporate-to-bank data exchange, standardized',
+    desc: 'Security and core functional modules for an enterprise embedded-finance connectivity platform, enabling PSD2-compliant financial data exchange between corporates and banks over API-driven workflows.',
+    tags: ['B2B SaaS', 'PSD2', 'API security'],
+    impact: 'PSD2-compliant corporate-to-bank exchange',
     visual: 'security-layers',
   },
   {
@@ -311,9 +315,28 @@ export const experience: ExperienceEntry[] = [
       'SigNoz',
       'Lago',
     ],
+    /*
+     * Role-level points carry what the project bullets structurally cannot: the
+     * things Rohit did rather than the things he built. Every one of these is
+     * confirmed by him directly — the AI tooling he introduced and taught, the
+     * bank and client stakeholder work, the reviews and the mentoring.
+     *
+     * Order matters twice over. The résumé prints the first MAX_ROLE_BULLETS of
+     * this array (see resumeService), so the three confirmed ownership facts sit
+     * first and the platform count last — that one is on the résumé already, in
+     * the summary line, and repeating it here would cost a bullet and trip a
+     * repetition check.
+     *
+     * Note what the first bullet does NOT say: "AI workflows" and "automation".
+     * Those exact words are the award citation, quoted in the résumé's Awards
+     * section, and a checker that flags repeated phrases does not care that the
+     * two mentions are 30 lines apart.
+     */
     points: [
+      'Introduced AI-assisted development and spec-driven tooling into how the team ships, then trained 3+ engineers to adopt it.',
+      'Collaborated with bank and client stakeholders to shape integration requirements, and presented releases to management.',
+      "Reviewed teammates' code and mentored a new developer through onboarding.",
       'Three production platforms in one role — Lynqx, EPS and Starfish — across Open Banking, card payments and embedded finance.',
-      'Awarded Tech Ninja Pro for integrating AI workflows and introducing automation.',
     ],
     projects: [
       {
@@ -321,10 +344,10 @@ export const experience: ExperienceEntry[] = [
         name: 'Lynqx',
         kind: 'Open Banking research & integration platform · FinTech',
         points: [
-          'Built the platform from scratch — financial connectivity across banks, institutions and third-party services in the US, EU and APAC, letting teams evaluate Open Banking providers on payments, data access, corporate treasury and scalability.',
-          'Built 20+ reusable React 19 and TypeScript components (Dashboard, Account Linking, Webhooks, Balance, Institutions) and 30+ embedded console screens spanning React, Next.js and Angular 19.',
-          'Developed 10+ REST APIs on Node.js and Express — Institutions, Balances, Schemes and Account Data — alongside Country, Product, Institution Support and Schema services.',
-          'Implemented DSL-based Temporal workflows orchestrating bank onboarding and customer consent flows.',
+          'Built the connectivity layer from scratch, integrating 25+ banks, institutions and third-party providers across the US, EU and APAC.',
+          'Shipped 20+ reusable React 19 and TypeScript components (Dashboard, Account Linking, Webhooks, Balance) and 30+ embedded console screens spanning React, Next.js and Angular 19.',
+          'Developed 10+ REST APIs on Node.js and Express — Institutions, Balances, Schemes and Account Data — alongside Country, Product and Schema services.',
+          'Orchestrated bank onboarding and customer consent flows with DSL-driven Temporal workflows.',
           'Configured APISIX gateway routing and security (routes, upstreams, consumers) and built SigNoz dashboards tracking p50/p95/p99 latency and errors.',
           'Integrated Lago for billing — plans, customers and pricing workflows — and built Kottster, a UI-based tool for database creation and management.',
         ],
@@ -334,8 +357,8 @@ export const experience: ExperienceEntry[] = [
         name: 'EPS',
         kind: 'ATM transaction processing & reconciliation · Core Banking',
         points: [
-          'Engineered high-volume ATM transaction handling for ONUS and OFFUS flows in Node.js v22, with APIs for transaction routing, bank deductions, reversals and rollbacks.',
-          'Automated reconciliation, reducing disputes and manual intervention.',
+          'Engineered ONUS and OFFUS payment flows handling 50K+ ATM transactions a day, with APIs for routing, bank deductions, reversals and rollbacks.',
+          'Automated reconciliation, eliminating over 90% of manual effort and reducing disputes.',
         ],
       },
       {
@@ -343,7 +366,7 @@ export const experience: ExperienceEntry[] = [
         name: 'Starfish Digital Domain',
         kind: 'Enterprise embedded finance platform · B2B SaaS',
         points: [
-          'Developed security and core functional modules enabling standardized, compliant financial data exchange between corporates and banks over API-driven workflows.',
+          'Delivered security and core modules for PSD2-compliant financial data exchange between corporates and banks.',
         ],
       },
     ],
@@ -358,10 +381,15 @@ export const experience: ExperienceEntry[] = [
     stack: ['Angular', 'JavaScript', 'HTML & CSS'],
     // Strongest first. The résumé caps how many bullets it prints per role, so
     // the order here decides what survives the cut — see resumeService.
+    //
+    // A third point used to sit here: "Built dynamic, interactive interfaces in
+    // Angular, improving the overall user experience." It went because it says
+    // nothing the two above don't — no metric, no specific system, and "improving
+    // the overall user experience" is the kind of phrase résumé scorers count as
+    // filler. Two real bullets beat three where one is padding.
     points: [
-      'Cut page load times by 56% through more efficient coding practices and front-end performance work.',
-      'Designed and delivered 10+ websites in Angular, JavaScript, HTML and CSS — Eduwego.in the flagship build.',
-      'Built dynamic, interactive interfaces in Angular, improving the overall user experience.',
+      'Cut page load times by 56% through frontend performance work.',
+      'Launched 10+ client websites in Angular, JavaScript, HTML and CSS — Eduwego.in the flagship build.',
     ],
   },
   {

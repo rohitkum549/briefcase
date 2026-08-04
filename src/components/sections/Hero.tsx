@@ -3,9 +3,20 @@ import { HandNote } from '@/components/ui/hand-note';
 import { InkArrow, InkCheck, InkUnderline } from '@/components/ui/ink';
 import { StickyNote } from '@/components/ui/sticky-note';
 import { HeroSkeleton } from '@/components/skeletons/HeroSkeleton';
+import { siteConfig } from '@/config/site';
 import { useHeroContent } from '@/hooks/useHeroContent';
 import { useResumeDownload } from '@/hooks/useResumeDownload';
 
+/*
+ * The four identity fields come from siteConfig, not literals.
+ *
+ * They were hardcoded, which quietly defeated the point of the placeholder
+ * defaults in src/config/env.defaults.ts: a build with no config would render
+ * "Your Name" in the header while this card still said the real name, so a
+ * misconfiguration looked like a cosmetic glitch instead of an obvious failure.
+ * Now every surface tells the same story. The stack lines below stay literal —
+ * they are content, not configuration.
+ */
 function DeveloperCodeCard() {
   return (
     <div className="overflow-hidden rounded-2xl bg-[#12131F] shadow-2xl">
@@ -20,16 +31,19 @@ function DeveloperCodeCard() {
       <pre className="overflow-x-auto p-6 font-mono text-[13px] leading-[1.9] whitespace-pre text-white/85">
         <span className="text-[#FF8A6B]">const</span> engineer = {'{'}
         {'\n'} name:{' '}
-        <span className="text-[#8FD98A]">&quot;Rohit Kumar Jha&quot;</span>,
+        <span className="text-[#8FD98A]">&quot;{siteConfig.name}&quot;</span>,
         {'\n'} role:{' '}
-        <span className="text-[#8FD98A]">&quot;Full-Stack Engineer&quot;</span>,
+        <span className="text-[#8FD98A]">&quot;{siteConfig.role}&quot;</span>,
         {'\n'} domain:{' '}
         <span className="text-[#8FD98A]">
-          &quot;Fintech · Open Banking&quot;
+          &quot;{siteConfig.discipline}&quot;
         </span>
         ,{'\n'} based:{' '}
-        <span className="text-[#8FD98A]">&quot;Mumbai, India&quot;</span>,{'\n'}{' '}
-        frontend: [<span className="text-[#8FD98A]">&quot;React 19&quot;</span>,{' '}
+        <span className="text-[#8FD98A]">
+          &quot;{siteConfig.location}&quot;
+        </span>
+        ,{'\n'} frontend: [
+        <span className="text-[#8FD98A]">&quot;React 19&quot;</span>,{' '}
         <span className="text-[#8FD98A]">&quot;Next.js&quot;</span>,{' '}
         <span className="text-[#8FD98A]">&quot;Angular 19&quot;</span>],
         {'\n'} backend: [
