@@ -11,7 +11,7 @@ const defaults: Omit<AppEnv, 'contactEndpoint'> = {
   siteName: 'Rohit Kumar Jha',
   contactEmail: 'rohitjha549@gmail.com',
   contactPhone: '+91 87945 64781',
-  githubUrl: 'https://github.com/',
+  githubUrl: 'https://github.com/rohitkum549',
   linkedinUrl: 'https://www.linkedin.com/in/rohitkumarjha549/',
 };
 

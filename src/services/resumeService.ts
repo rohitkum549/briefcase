@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { siteConfig } from '@/config/site';
+import { certifications } from '@/services/data/certificationsData';
 import {
   resumeSummary,
   experience,
@@ -20,17 +21,21 @@ const SUB_INDENT = 12;
  * hand-maintained exceptions that silently drifts from the first.
  */
 const MAX_PROJECT_BULLETS = 4;
-const MAX_ROLE_BULLETS = 2;
+const MAX_ROLE_BULLETS = 3;
 
 type Rgb = readonly [number, number, number];
 const INK: Rgb = [26, 26, 26];
 const MUTED: Rgb = [110, 110, 110];
 const ACCENT: Rgb = [15, 118, 110]; // matches --accent-brand on the site
 const RULE: Rgb = [205, 205, 205];
-const BAND: Rgb = [238, 246, 245]; // accent at ~8% over white
 
+// `www.` too: the contact line carries two URLs now, and four characters of
+// pure noise per link is width this document does not have to spare.
 function stripUrl(url: string): string {
-  return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  return url
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/\/$/, '');
 }
 
 /**
@@ -46,13 +51,6 @@ function sanitize(value: string): string {
     .replace(/[’‘]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/…/g, '...');
-}
-
-function initialsOf(name: string): string {
-  const words = name.trim().split(/\s+/);
-  const first = words[0] ?? '';
-  const last = words[words.length - 1] ?? '';
-  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 }
 
 /**
@@ -133,51 +131,6 @@ class ResumeWriter {
       this.doc.text(row, MARGIN + indent, this.y);
       this.y += lineGap;
     }
-  }
-
-  /**
-   * The one piece of decoration in the document: a tinted band holding the three
-   * facts worth reading first.
-   *
-   * ATS-safe by construction. The rect is drawn first and the text after it, at
-   * the normal left margin and full content width — so extraction, which orders
-   * text geometrically rather than by draw order, still reads these lines in
-   * place. Nothing is inside a table cell, a text box, or a second column.
-   */
-  highlightsBand(lines: string[]) {
-    const lineGap = 12.4;
-    const padX = 10;
-    const padY = 9;
-    const size = 9.4;
-
-    // Wrap BEFORE drawing the rect: the band's height depends on the wrapped
-    // line count, and text drawn with a bare doc.text() call does not wrap at
-    // all — a long line would run straight out past the right margin.
-    this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(size);
-    const rows = lines.flatMap(
-      (line) =>
-        this.doc.splitTextToSize(
-          sanitize(line),
-          this.contentWidth - padX * 2,
-        ) as string[],
-    );
-
-    const height = rows.length * lineGap + padY * 2 - 3;
-    this.ensureSpace(height + 8);
-
-    this.doc.setFillColor(...BAND);
-    this.doc.roundedRect(MARGIN, this.y, this.contentWidth, height, 3, 3, 'F');
-
-    this.y += padY + 8;
-    for (const row of rows) {
-      this.doc.setFont('helvetica', 'normal');
-      this.doc.setFontSize(size);
-      this.doc.setTextColor(...INK);
-      this.doc.text(row, MARGIN + padX, this.y);
-      this.y += lineGap;
-    }
-    this.y += padY - 6;
   }
 
   /** Role on the left, dates flush right — the classic senior-résumé line. */
@@ -266,7 +219,11 @@ class ResumeWriter {
     this.doc.setFont('helvetica', 'bold');
     this.doc.setFontSize(9.4);
     this.doc.setTextColor(...ACCENT);
-    this.doc.text(title.toUpperCase(), MARGIN, this.y, { charSpace: 1.1 });
+    // No charSpace. Letter-spacing is applied by positioning each glyph
+    // individually, and a naive text extractor reads that back as "S U M M A R Y"
+    // — which stops it recognising the section header it was keying on. Bold,
+    // uppercase and the accent rule carry the hierarchy without the risk.
+    this.doc.text(title.toUpperCase(), MARGIN, this.y);
     this.y += 5;
     this.doc.setDrawColor(...ACCENT);
     this.doc.setLineWidth(1.1);
@@ -277,14 +234,20 @@ class ResumeWriter {
     this.y += 11;
   }
 
+  /**
+   * Name, tagline, contact details, rule. No graphics.
+   *
+   * There used to be a teal "RJ" monogram in the top-right corner. It cost a
+   * point on every parser we tested: extraction is geometric, so the mark's two
+   * letters landed on the same line as the tagline and came back as
+   * "Full-Stack Engineer · Fintech & Open Banking RJ" — a junk token welded onto
+   * the field a recruiter's search actually reads. Moving it elsewhere only moves
+   * the problem, so it is gone.
+   */
   header(): void {
-    const mark = 30;
-    const initials = initialsOf(siteConfig.name);
+    const HEADER_BLOCK = 42;
     const top = this.y;
 
-    // The monogram sits top-right, not top-left. Text extraction is geometric,
-    // so a mark to the left of the name would make "RJ" the first token an ATS
-    // reads instead of the name itself.
     this.doc.setFont('helvetica', 'bold');
     this.doc.setFontSize(19);
     this.doc.setTextColor(...INK);
@@ -301,33 +264,35 @@ class ResumeWriter {
       top + 27,
     );
 
-    const markX = this.rightEdge - mark;
-    this.doc.setFillColor(...ACCENT);
-    this.doc.roundedRect(markX, top, mark, mark, 4.5, 4.5, 'F');
-    this.doc.setFont('helvetica', 'bold');
-    this.doc.setFontSize(12.5);
-    this.doc.setTextColor(255, 255, 255);
-    this.doc.text(
-      initials,
-      markX + mark / 2 - this.doc.getTextWidth(initials) / 2,
-      top + mark / 2 + 4.4,
-    );
-
-    this.y = top + mark + 12;
+    this.y = top + HEADER_BLOCK;
 
     this.doc.setFont('helvetica', 'normal');
     this.doc.setFontSize(9);
     this.doc.setTextColor(...MUTED);
-    this.doc.text(
-      [
-        siteConfig.email,
-        siteConfig.phone,
-        siteConfig.location,
-        stripUrl(siteConfig.linkedinUrl),
-      ].join('   ·   '),
-      MARGIN,
-      this.y,
-    );
+    /*
+     * Contact details, split by measurement rather than by eye.
+     *
+     * doc.text() does not wrap. Adding GitHub alongside LinkedIn pushed this
+     * past the content box, and the failure mode is silent and bad: the line
+     * runs off the right edge of the page and an ATS recovers half a URL. So
+     * measure, and drop the links to their own line only when they don't fit.
+     */
+    const SEP = '  ·  ';
+    const identity = [siteConfig.email, siteConfig.phone, siteConfig.location];
+    const links = [
+      stripUrl(siteConfig.linkedinUrl),
+      stripUrl(siteConfig.githubUrl),
+    ];
+    const oneLine = [...identity, ...links].join(SEP);
+    const rows =
+      this.doc.getTextWidth(oneLine) <= this.contentWidth
+        ? [oneLine]
+        : [identity.join(SEP), links.join(SEP)];
+
+    rows.forEach((row, i) => {
+      this.doc.text(row, MARGIN, this.y);
+      if (i < rows.length - 1) this.y += 10.5;
+    });
     this.y += 10;
 
     this.doc.setDrawColor(...RULE);
@@ -391,12 +356,18 @@ export function generateResumePdf(): jsPDF {
 
   w.header();
 
-  w.highlightsBand([
-    'Built Lynqx from scratch - Open Banking connectivity across the US, EU and APAC.',
-    'Three production fintech platforms in one role: Open Banking, card payments, embedded finance.',
-    `${award.title} award at ${award.org} for ${award.reason}.`,
-  ]);
-
+  /*
+   * There is no highlights band above SUMMARY any more.
+   *
+   * It was three tinted lines restating the best facts on the page. Two problems.
+   * It was unlabelled prose sitting before any recognised section header, which
+   * is exactly the shape a parser mis-files — and it was the source of both
+   * repeated-phrase flags, because it said "integrating AI workflows and
+   * introducing automation" that the award section says again, and
+   * "banks, institutions and third-party services" that the summary said again.
+   * The facts all survive lower down, each in one place. Deleting it also freed
+   * the 57pt that the ownership bullets below are spending.
+   */
   w.sectionHeading('Summary');
   w.text(resumeSummary, { gap: 12.2 });
 
@@ -412,15 +383,17 @@ export function generateResumePdf(): jsPDF {
       if (index > 0) w.gap(9);
       w.roleLine(entry.role, entry.period);
       w.companyLine(entry.company, entry.location);
-      // Role-level points are only rendered when the role has no named projects.
-      // For Cateina they restate "three platforms in one role" and the award,
-      // both of which the highlights band already says at the top of the page —
-      // and a résumé that repeats itself twice in ten lines reads careless.
-      if (!entry.projects?.length) {
-        entry.points
-          .slice(0, MAX_ROLE_BULLETS)
-          .forEach((point) => w.bullet(point));
-      }
+      /*
+       * Role-level points print for every role, including ones with named
+       * platforms under them. They used to be suppressed for Cateina because the
+       * highlights band already said the same things; the band is gone, and these
+       * bullets now carry what no project bullet can — the initiative, the
+       * stakeholder work, the mentoring. A résumé made only of "Built X" scores
+       * zero on every leadership, teamwork and communication check there is.
+       */
+      entry.points
+        .slice(0, MAX_ROLE_BULLETS)
+        .forEach((point) => w.bullet(point));
       entry.projects?.forEach((project) => {
         w.gap(3);
         w.projectLine(project.name, project.kind);
@@ -446,15 +419,27 @@ export function generateResumePdf(): jsPDF {
    */
   w.sectionHeading('Awards & Certifications');
   w.roleLine(`${award.title} — ${award.org}`, award.shortDate);
-  // The name alone means nothing outside Cateina, so the bullet says what kind
-  // of award it is before quoting the citation.
-  w.bullet(
-    `Employer award signed by the ${award.signedByRole} — "${award.citation}"`,
-  );
+  // Verb first, and the signatory before the citation: "Tech Ninja Pro" means
+  // nothing outside Cateina, but an award a chief executive put their name to
+  // does. This is the only place on the page the citation appears — the role
+  // bullet about the same work deliberately uses different words for it.
+  w.bullet(`Awarded by the ${award.signedByRole} — "${award.citation}"`);
   w.gap(2);
+  /*
+   * The programme carries its full date range, not just "2023".
+   *
+   * Between graduating in 2022 and starting at Zeqon in Apr 2023 there is a
+   * ten-month gap, and an unexplained gap is a documented HR red flag that a
+   * bare year does nothing to answer. The Simplilearn track ran Sep 2022 to
+   * Jul 2023 — see certificationsData — so the range covers the window with a
+   * fact rather than leaving a screener to guess at it.
+   */
+  // The count comes from the data, not a literal, so adding a certificate to the
+  // site can't leave a stale "13" on the résumé. It earns its place by telling a
+  // reader that the two named here are a selection rather than the whole record.
   w.skillRow(
     'Certifications',
-    "Full Stack Java Developer Master's Program, Simplilearn (2023, completed with distinction) · Java (Basic), HackerRank (2022)",
+    `Full Stack Java Developer Master's Program, Simplilearn (Sep 2022 - Jul 2023, completed with distinction) · Java (Basic), HackerRank (2022) · 2 of ${certifications.length} completed`,
   );
 
   const education = experience.find((entry) => entry.id === 'education');
