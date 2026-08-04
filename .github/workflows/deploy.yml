@@ -31,8 +31,36 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Vite inlines VITE_* values at BUILD time, so they have to be present in
+      # this step's environment — there is no runtime config on a static site.
+      #
+      # These come from Settings -> Secrets and variables -> Actions -> Variables.
+      # They must be REPOSITORY variables, not variables scoped to the
+      # github-pages environment: this build job declares no `environment:`, so
+      # environment-scoped variables would resolve empty here and STRICT_ENV
+      # below would fail the deploy.
+      #
+      # A variable that is not defined expands to an empty string rather than
+      # being absent. src/config/env.ts treats blank as unset and falls back to
+      # deliberately fake placeholders ("Your Name"), which is correct for local
+      # development and unpublishable — hence the strict gate.
+      #
+      # Variables, not secrets, on purpose: everything prefixed VITE_ is compiled
+      # into the public JS bundle, so none of it can be secret. Marking it secret
+      # would only hide it from the Actions log, not from the deployed site.
       - name: Build
         run: npm run build
+        env:
+          # Strict only here. vite.config.ts refuses to build when a required
+          # variable is missing, so a deleted or renamed repository variable
+          # fails this job instead of publishing placeholder contact details.
+          STRICT_ENV: '1'
+          VITE_SITE_NAME: ${{ vars.VITE_SITE_NAME }}
+          VITE_CONTACT_EMAIL: ${{ vars.VITE_CONTACT_EMAIL }}
+          VITE_CONTACT_PHONE: ${{ vars.VITE_CONTACT_PHONE }}
+          VITE_GITHUB_URL: ${{ vars.VITE_GITHUB_URL }}
+          VITE_LINKEDIN_URL: ${{ vars.VITE_LINKEDIN_URL }}
+          VITE_CONTACT_ENDPOINT: ${{ vars.VITE_CONTACT_ENDPOINT }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

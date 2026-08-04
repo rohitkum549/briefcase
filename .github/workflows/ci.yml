@@ -36,5 +36,21 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
+      # Same variables as the deploy workflow, and strict wherever the variables
+      # are actually reachable — so a missing one fails HERE, before merge,
+      # rather than turning up as a red deploy on main.
+      #
+      # GitHub withholds variables from pull requests opened from forks, so those
+      # runs go lenient and build on the placeholder defaults instead of failing
+      # for a reason the contributor cannot fix. The expression is false only for
+      # a fork PR: on push, `pull_request` is null, so this resolves to '1'.
       - name: Build
         run: npm run build
+        env:
+          STRICT_ENV: ${{ github.event.pull_request.head.repo.fork && '' || '1' }}
+          VITE_SITE_NAME: ${{ vars.VITE_SITE_NAME }}
+          VITE_CONTACT_EMAIL: ${{ vars.VITE_CONTACT_EMAIL }}
+          VITE_CONTACT_PHONE: ${{ vars.VITE_CONTACT_PHONE }}
+          VITE_GITHUB_URL: ${{ vars.VITE_GITHUB_URL }}
+          VITE_LINKEDIN_URL: ${{ vars.VITE_LINKEDIN_URL }}
+          VITE_CONTACT_ENDPOINT: ${{ vars.VITE_CONTACT_ENDPOINT }}

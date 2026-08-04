@@ -243,6 +243,12 @@ class ResumeWriter {
    * "Full-Stack Engineer · Fintech & Open Banking RJ" — a junk token welded onto
    * the field a recruiter's search actually reads. Moving it elsewhere only moves
    * the problem, so it is gone.
+   *
+   * Every string here goes through sanitize(), like every other draw site. That
+   * used to be skipped on the grounds that these were known-safe literals — but
+   * they are not literals any more: name, email, phone and both URLs come from
+   * repository variables, so a curly apostrophe pasted into a GitHub settings
+   * field would render as mojibake on the most important line of the document.
    */
   header(): void {
     const HEADER_BLOCK = 42;
@@ -251,15 +257,17 @@ class ResumeWriter {
     this.doc.setFont('helvetica', 'bold');
     this.doc.setFontSize(19);
     this.doc.setTextColor(...INK);
-    this.doc.text(siteConfig.name.toUpperCase(), MARGIN, top + 13, {
-      charSpace: 0.4,
-    });
+    // No charSpace. Section headings dropped their letter-spacing so naive
+    // extractors could not read them back as "S U M M A R Y"; the name is the
+    // single token where that failure would cost the most, so it follows the
+    // same rule. 0.4pt of tracking is not worth the risk.
+    this.doc.text(sanitize(siteConfig.name).toUpperCase(), MARGIN, top + 13);
 
     this.doc.setFont('helvetica', 'normal');
     this.doc.setFontSize(10.4);
     this.doc.setTextColor(...ACCENT);
     this.doc.text(
-      `${siteConfig.role}  ·  ${siteConfig.discipline}`,
+      sanitize(`${siteConfig.role}  ·  ${siteConfig.discipline}`),
       MARGIN,
       top + 27,
     );
@@ -270,24 +278,47 @@ class ResumeWriter {
     this.doc.setFontSize(9);
     this.doc.setTextColor(...MUTED);
     /*
-     * Contact details, split by measurement rather than by eye.
+     * Contact details, packed by measurement rather than by eye.
      *
-     * doc.text() does not wrap. Adding GitHub alongside LinkedIn pushed this
-     * past the content box, and the failure mode is silent and bad: the line
-     * runs off the right edge of the page and an ATS recovers half a URL. So
-     * measure, and drop the links to their own line only when they don't fit.
+     * doc.text() does not wrap, and the failure mode is silent and bad: the line
+     * runs off the right edge of the page and an ATS recovers half a URL.
+     *
+     * Every row is measured, not just the first. An earlier version checked
+     * whether all five parts fitted on one line and, when they did not, emitted
+     * a fixed identity/links two-row split *unchecked* — so a longer email or a
+     * renamed profile could still overflow, which is the exact bug the
+     * measurement existed to prevent. Today all five fit with about 7pt to
+     * spare, so that branch was one env-value change away from being reached.
      */
     const SEP = '  ·  ';
-    const identity = [siteConfig.email, siteConfig.phone, siteConfig.location];
-    const links = [
+    const parts = [
+      siteConfig.email,
+      siteConfig.phone,
+      siteConfig.location,
       stripUrl(siteConfig.linkedinUrl),
       stripUrl(siteConfig.githubUrl),
-    ];
-    const oneLine = [...identity, ...links].join(SEP);
-    const rows =
-      this.doc.getTextWidth(oneLine) <= this.contentWidth
-        ? [oneLine]
-        : [identity.join(SEP), links.join(SEP)];
+    ].map(sanitize);
+
+    const rows: string[] = [];
+    for (const part of parts) {
+      const last = rows[rows.length - 1];
+      const merged = last === undefined ? part : `${last}${SEP}${part}`;
+      if (
+        last !== undefined &&
+        this.doc.getTextWidth(merged) <= this.contentWidth
+      ) {
+        rows[rows.length - 1] = merged;
+      } else if (this.doc.getTextWidth(part) <= this.contentWidth) {
+        rows.push(part);
+      } else {
+        // A single value wider than the page: pathological, but breaking it
+        // mid-token still beats drawing it off the edge where it is unreadable
+        // and unparseable.
+        rows.push(
+          ...(this.doc.splitTextToSize(part, this.contentWidth) as string[]),
+        );
+      }
+    }
 
     rows.forEach((row, i) => {
       this.doc.text(row, MARGIN, this.y);

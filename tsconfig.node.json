@@ -19,5 +19,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  // env.defaults.ts is shared with the app project: vite.config.ts templates
+  // index.html from the same placeholder table src/config/env.ts falls back to.
+  "include": ["vite.config.ts", "src/config/env.defaults.ts"]
 }

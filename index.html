@@ -5,27 +5,32 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!--
-      This metadata is the machine-readable half of the résumé: it is what a
-      search result, a shared link and Google's knowledge graph report. Every
-      claim here must match src/services/data/portfolioData.ts and
-      src/config/site.ts — job title, stack, university, links. A recruiter who
-      reads the search result and then the résumé should see one person. (An
-      earlier revision did not match on any of those four; see git history.)
+      This metadata is the machine-readable half of the résumé: what a search
+      result, a shared link and Google's knowledge graph report. A recruiter who
+      reads the search result and then the résumé must see one person. (An
+      earlier revision did not: it said "Senior", claimed a stack the project
+      does not use, and named the wrong university. See git history.)
+
+      %VITE_*% placeholders are substituted at build time by the htmlEnv plugin
+      in vite.config.ts, from the same repository variables the app reads — so
+      identity here cannot drift from the rendered site. Everything else (job
+      title, stack, education) is content and must stay in step with
+      src/services/data/portfolioData.ts by hand.
     -->
     <title>
-      Rohit Kumar Jha — Full-Stack Engineer | Fintech & Open Banking, React,
+      %VITE_SITE_NAME% — Full-Stack Engineer | Fintech & Open Banking, React,
       Node.js
     </title>
     <meta
       name="description"
-      content="Rohit Kumar Jha is a full-stack engineer in Mumbai with 3+ years in fintech and Open Banking. Built Lynqx from scratch — connectivity for 25+ banks and institutions across the US, EU and APAC — in React 19, Next.js, Angular 19, TypeScript, Node.js and PostgreSQL, with Temporal workflows, REST API design and AI-assisted delivery."
+      content="%VITE_SITE_NAME% is a full-stack engineer in Mumbai with 3+ years in fintech and Open Banking. Built Lynqx from scratch — connectivity for 25+ banks and institutions across the US, EU and APAC — in React 19, Next.js, Angular 19, TypeScript, Node.js and PostgreSQL, with Temporal workflows, REST API design and AI-assisted delivery."
     />
-    <meta name="author" content="Rohit Kumar Jha" />
+    <meta name="author" content="%VITE_SITE_NAME%" />
     <meta name="robots" content="index, follow" />
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Rohit Kumar Jha — Full-Stack Engineer · Fintech & Open Banking"
+      content="%VITE_SITE_NAME% — Full-Stack Engineer · Fintech & Open Banking"
     />
     <meta
       property="og:description"
@@ -34,7 +39,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Rohit Kumar Jha — Full-Stack Engineer · Fintech & Open Banking"
+      content="%VITE_SITE_NAME% — Full-Stack Engineer · Fintech & Open Banking"
     />
     <meta
       name="twitter:description"
@@ -50,10 +55,10 @@
       {
         "@context": "https://schema.org",
         "@type": "Person",
-        "name": "Rohit Kumar Jha",
+        "name": "%VITE_SITE_NAME%",
         "jobTitle": "Full-Stack Engineer",
-        "email": "rohitjha549@gmail.com",
-        "telephone": "+91-8794564781",
+        "email": "%VITE_CONTACT_EMAIL%",
+        "telephone": "%VITE_CONTACT_PHONE%",
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Mumbai",
@@ -91,10 +96,7 @@
           "GitLab CI/CD",
           "AI-assisted engineering"
         ],
-        "sameAs": [
-          "https://www.linkedin.com/in/rohitkumarjha549/",
-          "https://github.com/rohitkum549"
-        ]
+        "sameAs": ["%VITE_LINKEDIN_URL%", "%VITE_GITHUB_URL%"]
       }
     </script>
   </head>
