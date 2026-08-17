@@ -1,4 +1,5 @@
 import { TechIcon } from '@/components/ui/tech-icon';
+import { TiltCard } from '@/components/ui/tilt-card';
 import { HandNote } from '@/components/ui/hand-note';
 import { InkArrow } from '@/components/ui/ink';
 import { useCapabilities } from '@/hooks/useCapabilities';
@@ -40,7 +41,7 @@ export function Stack() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {capabilities.map((group) => (
-            <div key={group.id} className="rounded-2xl border bg-card p-6">
+            <TiltCard key={group.id} className="rounded-2xl border bg-card p-6">
               <div className="mb-5 border-b pb-3.5 font-mono text-[11px] tracking-[1.5px] text-muted-foreground uppercase">
                 {group.group}
               </div>
@@ -58,7 +59,7 @@ export function Stack() {
                   </div>
                 ))}
               </div>
-            </div>
+            </TiltCard>
           ))}
         </div>
       </div>

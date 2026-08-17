@@ -1,5 +1,6 @@
 import { HandNote } from '@/components/ui/hand-note';
 import { TechIcon } from '@/components/ui/tech-icon';
+import { TiltCard } from '@/components/ui/tilt-card';
 import { useCurrentlyShipping } from '@/hooks/useCurrentlyShipping';
 
 /*
@@ -41,7 +42,7 @@ export function CurrentlyShipping() {
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {items.map((item) => (
-            <div key={item.id} className="rounded-2xl border bg-card p-6">
+            <TiltCard key={item.id} className="rounded-2xl border bg-card p-6">
               <div className="mb-4 font-mono text-[10px] tracking-[1.5px] text-accent-brand uppercase">
                 {item.status}
               </div>
@@ -65,7 +66,7 @@ export function CurrentlyShipping() {
                   </span>
                 ))}
               </div>
-            </div>
+            </TiltCard>
           ))}
         </div>
       </div>

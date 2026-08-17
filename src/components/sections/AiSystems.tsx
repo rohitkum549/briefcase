@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { StickyNote } from '@/components/ui/sticky-note';
+import { TiltCard } from '@/components/ui/tilt-card';
 import { useAiSystemContent } from '@/hooks/useAiSystemContent';
 
 export function AiSystems() {
@@ -73,14 +74,17 @@ export function AiSystems() {
 
           <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {content.principles.map((principle) => (
-              <div key={principle.id} className="rounded-xl border bg-card p-6">
+              <TiltCard
+                key={principle.id}
+                className="rounded-xl border bg-card p-6"
+              >
                 <div className="mb-1.5 font-heading text-base font-bold">
                   {principle.title}
                 </div>
                 <div className="text-[13px] leading-relaxed text-muted-foreground">
                   {principle.body}
                 </div>
-              </div>
+              </TiltCard>
             ))}
           </div>
         </>

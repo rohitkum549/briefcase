@@ -142,6 +142,17 @@
   --deep: #15171c;
   --on-deep: #f3f3ee;
   --accent-brand: #0f766e;
+  /*
+   * The light source that travels across a card under the pointer.
+   *
+   * A specular highlight is normally white, and on a near-white card that is
+   * invisible — so in light mode the "light" is a trace of the accent instead,
+   * which reads as the sheen on coated paper catching the room. Dark mode gets
+   * the literal white highlight, because there it actually shows.
+   */
+  --sheen: color-mix(in oklab, var(--accent-brand) 14%, transparent);
+  --card-shadow:
+    0 20px 44px -22px rgb(0 0 0 / 0.34), 0 3px 10px -6px rgb(0 0 0 / 0.16);
 }
 
 .dark {
@@ -176,6 +187,9 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --sheen: oklch(1 0 0 / 0.08);
+  --card-shadow:
+    0 20px 44px -20px rgb(0 0 0 / 0.7), 0 3px 10px -6px rgb(0 0 0 / 0.5);
   --deep: #050609;
   --on-deep: #f1f1ec;
   --accent-brand: #2dd4bf;
@@ -322,6 +336,147 @@
 }
 
 /*
+ * Cards that tip toward the pointer.
+ *
+ * This is the one place the printed layer is allowed to move, and the exception
+ * is principled rather than convenient. The rule above is that printed matter is
+ * already on the page when you arrive — it does not animate itself into
+ * existence. Tilt is not an entrance: it is the page answering your hand, the
+ * same way a real card lifts when you put a finger on it to read it closer.
+ * Nothing here happens unless the visitor causes it, frame by frame.
+ *
+ * The four values the pointer drives are registered with @property so they can
+ * be interpolated. An unregistered custom property has no type, so the browser
+ * cannot transition it — it would jump between values, which is why so many
+ * versions of this effect either snap flat on mouse-out or need a second
+ * animated element to hide the seam. Registering them also supplies an
+ * `initial-value`, so the resting state is the type system's job rather than a
+ * `var()` fallback repeated at every use.
+ */
+@property --tilt-x {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --tilt-y {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --lift {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+/* Inherited: the sheen and the popped layer are children reading the card's
+   values, so they follow the card's transition without owning one. */
+@property --sheen-x {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 50%;
+}
+@property --sheen-y {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 50%;
+}
+@property --sheen-o {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pop {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+@property --card-scale {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+@utility card-3d {
+  transform-style: preserve-3d;
+  /*
+   * 900px, not the 1100px this started at. Perspective distance is the strength
+   * dial nobody reaches for: at 1100px a 5° rotation moved the card's far edge
+   * by a couple of pixels and the whole effect was invisible unless you already
+   * knew it was there. Shortening the distance makes the same rotation read as
+   * depth. Below about 750px the text visibly shears, so this is the near end of
+   * the usable range rather than a timid setting.
+   */
+  transform: perspective(900px) translateY(var(--lift)) scale(var(--card-scale))
+    rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+
+  /*
+   * Tilt tracks at `--tilt-ms`, which the hook pins to 0ms while the pointer is
+   * on the card and removes when it leaves — so the card follows the pointer
+   * exactly, then eases flat. Lift and depth are never instant: they always run
+   * at `--duration-quick`, so entering and leaving both feel weighted.
+   *
+   * `linear` on the tracked properties on purpose. An easing curve applied to a
+   * value that is already being replaced every frame just adds lag.
+   */
+  transition:
+    --tilt-x var(--tilt-ms, var(--duration-quick)) linear,
+    --tilt-y var(--tilt-ms, var(--duration-quick)) linear,
+    --sheen-x var(--tilt-ms, var(--duration-quick)) linear,
+    --sheen-y var(--tilt-ms, var(--duration-quick)) linear,
+    --lift var(--duration-quick) var(--ease-settle),
+    --pop var(--duration-quick) var(--ease-settle),
+    --card-scale var(--duration-quick) var(--ease-settle),
+    --sheen-o var(--duration-quick) linear,
+    box-shadow var(--duration-quick) var(--ease-settle),
+    border-color var(--duration-instant) linear;
+
+  /*
+   * Gated on a real pointer. `:hover` on a touchscreen latches after a tap and
+   * stays on until you touch something else, which would leave one card lit and
+   * raised while you scroll past it.
+   */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      --lift: -9px;
+      /* The scale is small on purpose. It is not there to enlarge the card, it
+         is there so the card reads as coming toward you rather than merely
+         leaning — depth needs both the rotation and the approach. */
+      --card-scale: 1.015;
+      --pop: 40px;
+      --sheen-o: 1;
+      border-color: color-mix(in oklab, var(--accent-brand) 32%, var(--border));
+      box-shadow: var(--card-shadow);
+    }
+  }
+}
+
+/*
+ * A layer that stands off the card face.
+ *
+ * This is what separates a tilt from a skew. Rotating a flat rectangle reads as
+ * a rectangle being distorted; giving one layer real distance from the others
+ * means it shifts against them as the card turns, and that parallax is the only
+ * cue that actually says "depth". Applied to the diagram rather than to any
+ * text, because text rendered on a z-translated plane resamples and goes soft.
+ */
+@utility card-pop {
+  transform: translateZ(var(--pop));
+}
+
+@utility card-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--sheen-o);
+  background: radial-gradient(
+    440px circle at var(--sheen-x) var(--sheen-y),
+    var(--sheen),
+    transparent 62%
+  );
+}
+
+/*
  * Reduced motion, handled once for the whole document.
  *
  * This block previously covered the ink strokes alone, which left the 30s
@@ -364,5 +519,20 @@
   .chart-draw-run {
     animation: none !important;
     clip-path: none !important;
+  }
+
+  /*
+   * No tilt, no travelling light, no parallax — but the border and shadow on
+   * hover stay. Reduced motion is a request for less movement, not for less
+   * feedback, and removing the hover affordance entirely would leave someone
+   * unable to tell that a card is a distinct object at all.
+   */
+  .card-3d,
+  .card-pop {
+    transform: none !important;
+  }
+
+  .card-sheen {
+    display: none !important;
   }
 }

@@ -31,8 +31,18 @@ export function Services() {
         <div className="mt-10">
           <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-14">
             {services.map((service) => (
-              <div key={service.id} className="flex gap-5 border-t py-7">
-                <span className="flex-none font-heading text-xl font-bold tracking-tight text-accent-brand">
+              /*
+                These are rows on a rule, not cards, so they get no tilt — a
+                tipping rectangle needs edges to tip, and these have one line.
+                What they get instead is the rule taking the accent under the
+                pointer: the gesture of running a pen along the line you are
+                reading, which is the same idea the rest of the page is built on.
+              */
+              <div
+                key={service.id}
+                className="group flex gap-5 border-t py-7 transition-colors duration-(--duration-instant) hover:border-accent-brand/45"
+              >
+                <span className="flex-none font-heading text-xl font-bold tracking-tight text-accent-brand transition-transform duration-(--duration-quick) ease-(--ease-settle) group-hover:-translate-y-0.5">
                   {service.no}
                 </span>
                 <div>

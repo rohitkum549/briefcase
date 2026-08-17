@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { ProjectVisual } from '@/components/charts/ProjectVisual';
 import type { Project } from '@/types/project';
 import type { ComponentPropsWithoutRef } from 'react';
+import { usePointerTilt } from '@/hooks/usePointerTilt';
 import { cn } from '@/lib/utils';
 
 interface ProjectCardProps extends ComponentPropsWithoutRef<'article'> {
@@ -14,28 +15,44 @@ export function ProjectCard({
   className,
   ...props
 }: ProjectCardProps) {
+  const tiltRef = usePointerTilt<HTMLElement>({ max: 9 });
+
   return (
     <article
+      ref={tiltRef}
       className={cn(
-        'overflow-hidden rounded-2xl border bg-card transition-shadow hover:shadow-lg',
+        // `overflow-hidden` used to live here and had to go: the spec resets
+        // `transform-style` to flat on any element that clips, which silently
+        // kills the parallax below. The visual slot rounds its own top corners
+        // instead, which is all the clipping this card ever needed.
+        'card-3d relative rounded-2xl border bg-card',
         className,
       )}
       {...props}
     >
       {/* Same slot geometry as before — aspect-video, border-b, muted wash.
           Only the contents changed: a visual specific to this project instead of
-          the identical placeholder every card used to show. */}
-      <div className="flex aspect-video flex-col items-center justify-center gap-2.5 border-b bg-muted/60 p-4">
-        {project.visual ? (
-          <ProjectVisual variant={project.visual} />
-        ) : (
-          <>
-            <Boxes className="size-6 text-accent-brand/60" strokeWidth={1.4} />
-            <span className="font-mono text-[10px] tracking-[1.5px] text-muted-foreground uppercase">
-              Project preview
-            </span>
-          </>
-        )}
+          the identical placeholder every card used to show.
+
+          `transform-3d` so the diagram inside can hold real distance from the
+          card face; without it the slot flattens its children into its own
+          plane and `card-pop` becomes a no-op. */}
+      <div className="flex aspect-video transform-3d flex-col items-center justify-center gap-2.5 rounded-t-2xl border-b bg-muted/60 p-4">
+        <div className="card-pop flex flex-col items-center gap-2.5">
+          {project.visual ? (
+            <ProjectVisual variant={project.visual} />
+          ) : (
+            <>
+              <Boxes
+                className="size-6 text-accent-brand/60"
+                strokeWidth={1.4}
+              />
+              <span className="font-mono text-[10px] tracking-[1.5px] text-muted-foreground uppercase">
+                Project preview
+              </span>
+            </>
+          )}
+        </div>
       </div>
       <div className="p-7">
         <div className="mb-3 flex items-center justify-between">
@@ -81,6 +98,10 @@ export function ProjectCard({
           ))}
         </div>
       </div>
+
+      {/* The travelling highlight. Last in the DOM and pointer-events-none, so
+          it lights the card without intercepting the pointer that drives it. */}
+      <span aria-hidden="true" className="card-sheen rounded-2xl" />
     </article>
   );
 }
