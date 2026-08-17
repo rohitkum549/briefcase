@@ -1,4 +1,5 @@
 import { siteConfig } from '@/config/site';
+import { ResumePicker } from '@/components/layout/ResumePicker';
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -30,7 +31,16 @@ export function Footer() {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="font-heading text-sm font-bold">rohit jha</span>
+          {/*
+            The wordmark reads "rohit jha" exactly as before — same font, size,
+            weight and colour. "jha" is now the trigger for the résumé selector.
+            Making the second half of an existing word the control is what keeps
+            this an Easter egg: nothing was added to the footer, so there is no
+            new affordance to notice until you hover it.
+          */}
+          <span className="font-heading text-sm font-bold">
+            rohit <ResumePicker />
+          </span>
         </div>
         <div className="font-mono text-[11px] tracking-wider text-on-deep/60">
           © {year} {siteConfig.name.toUpperCase()} · DESIGNED &amp; BUILT IN

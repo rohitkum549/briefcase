@@ -1,41 +1,19 @@
-import { useCallback, useLayoutEffect, useState } from 'react';
-import type { ThemeMode } from '@/types/theme';
+import { useContext } from 'react';
+import {
+  ThemeContext,
+  type ThemeContextValue,
+} from '@/providers/theme-context';
 
-const STORAGE_KEY = 'rj-portfolio-theme';
-
-function getPreferredTheme(): ThemeMode {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'dark' || stored === 'light') return stored;
-  } catch {
-    // localStorage unavailable (private mode, SSR) — fall through to media query.
+/**
+ * Reads the shared theme. State lives in ThemeProvider — see the note there for
+ * why this stopped owning it.
+ */
+export function useTheme(): ThemeContextValue {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used inside <ThemeProvider>.');
   }
-  if (window.matchMedia?.('(prefers-color-scheme: dark)').matches)
-    return 'dark';
-  return 'light';
+  return context;
 }
 
-export interface UseThemeResult {
-  theme: ThemeMode;
-  isDark: boolean;
-  toggleTheme: () => void;
-}
-
-export function useTheme(): UseThemeResult {
-  const [theme, setTheme] = useState<ThemeMode>(getPreferredTheme);
-
-  useLayoutEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    try {
-      localStorage.setItem(STORAGE_KEY, theme);
-    } catch {
-      // Ignore write failures (private mode / storage quota).
-    }
-  }, [theme]);
-
-  const toggleTheme = useCallback(() => {
-    setTheme((current) => (current === 'dark' ? 'light' : 'dark'));
-  }, []);
-
-  return { theme, isDark: theme === 'dark', toggleTheme };
-}
+export type UseThemeResult = ThemeContextValue;

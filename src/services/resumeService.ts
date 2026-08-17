@@ -1,12 +1,13 @@
 import { jsPDF } from 'jspdf';
 import { siteConfig } from '@/config/site';
 import { certifications } from '@/services/data/certificationsData';
+import { experience, award } from '@/services/data/portfolioData';
+import { bulletsFor } from '@/services/data/resumeBullets';
 import {
-  resumeSummary,
-  experience,
-  capabilities,
-  award,
-} from '@/services/data/portfolioData';
+  DEFAULT_RESUME_ROLE,
+  getResumeRole,
+} from '@/services/data/resumeRoles';
+import type { ResumeRoleId } from '@/types/resume';
 
 const MARGIN = 46;
 const FONT_BODY = 9.6;
@@ -15,13 +16,17 @@ const SUB_INDENT = 12;
 
 /*
  * One page is a hard constraint, and the site is where the complete record
- * lives — so the résumé prints the strongest bullets per block and stops. The
- * data files order their points strongest-first for exactly this reason, which
- * keeps the cut here positional and dumb rather than a second list of
- * hand-maintained exceptions that silently drifts from the first.
+ * lives — so each résumé prints the strongest bullets per block and stops.
+ *
+ * That cut used to be a positional slice here (first 3 role bullets, first 4
+ * project bullets). It is now the role configuration's job, because the budget
+ * genuinely differs per variant: the frontend résumé drops two platform blocks
+ * and spends the space on a fourth role bullet instead. A blanket slice would
+ * have silently truncated that list back to three — the failure mode being an
+ * edit that appears to work and quietly does nothing.
+ *
+ * `checkResumeBudget` below is what keeps the one-page promise honest now.
  */
-const MAX_PROJECT_BULLETS = 4;
-const MAX_ROLE_BULLETS = 3;
 
 type Rgb = readonly [number, number, number];
 const INK: Rgb = [26, 26, 26];
@@ -54,19 +59,32 @@ function sanitize(value: string): string {
 }
 
 /**
- * Dated filename so the newest download is obvious in a folder of them.
+ * Role, date and time in the filename — `Rohit_Jha-Frontend_17-08-2026_1432.pdf`.
+ *
+ * The role slug is the point: seven of these land in one Downloads folder and
+ * "which one did I send to that fintech?" has to be answerable without opening
+ * them. The time is there because two variants downloaded the same afternoon
+ * would otherwise collide in the filename and get a browser-appended "(1)" —
+ * and parentheses are exactly what the character rule below exists to avoid.
  *
  * Built from LOCAL date parts on purpose. `toISOString()` converts to UTC, which
  * for an evening download in IST (UTC+5:30) reports yesterday — the one thing a
  * "this is the latest one" filename must never do.
  */
-export function resumeFileName(now: Date = new Date()): string {
-  const dd = String(now.getDate()).padStart(2, '0');
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
+export function resumeFileName(
+  roleId: ResumeRoleId = DEFAULT_RESUME_ROLE,
+  now: Date = new Date(),
+): string {
+  const pad = (value: number) => String(value).padStart(2, '0');
+  const dd = pad(now.getDate());
+  const mm = pad(now.getMonth() + 1);
   const yyyy = now.getFullYear();
+  const time = `${pad(now.getHours())}${pad(now.getMinutes())}`;
   const name = siteConfig.name.trim().replace(/\s+/g, '_');
-  // No parentheses: some ATS upload forms reject or mangle them.
-  return `${name}_Resume_${dd}-${mm}-${yyyy}.pdf`;
+  // Only letters, digits, hyphen and underscore reach the filename: some ATS
+  // upload forms reject or mangle parentheses, spaces and diacritics.
+  const slug = getResumeRole(roleId).fileSlug.replace(/[^A-Za-z0-9-]/g, '');
+  return `${name}-${slug}_${dd}-${mm}-${yyyy}_${time}.pdf`;
 }
 
 interface TextOptions {
@@ -250,7 +268,7 @@ class ResumeWriter {
    * repository variables, so a curly apostrophe pasted into a GitHub settings
    * field would render as mojibake on the most important line of the document.
    */
-  header(): void {
+  header(headline: string): void {
     const HEADER_BLOCK = 42;
     const top = this.y;
 
@@ -266,11 +284,11 @@ class ResumeWriter {
     this.doc.setFont('helvetica', 'normal');
     this.doc.setFontSize(10.4);
     this.doc.setTextColor(...ACCENT);
-    this.doc.text(
-      sanitize(`${siteConfig.role}  ·  ${siteConfig.discipline}`),
-      MARGIN,
-      top + 27,
-    );
+    // The headline is role-specific — it is the first line under the name and
+    // the one a six-second skim uses to decide whether this is the right pile,
+    // so it says "Frontend Engineer" on the frontend variant rather than the
+    // site's single generic title.
+    this.doc.text(sanitize(headline), MARGIN, top + 27);
 
     this.y = top + HEADER_BLOCK;
 
@@ -382,10 +400,13 @@ class ResumeWriter {
   }
 }
 
-export function generateResumePdf(): jsPDF {
+export function generateResumePdf(
+  roleId: ResumeRoleId = DEFAULT_RESUME_ROLE,
+): jsPDF {
+  const role = getResumeRole(roleId);
   const w = new ResumeWriter();
 
-  w.header();
+  w.header(role.headline);
 
   /*
    * There is no highlights band above SUMMARY any more.
@@ -399,38 +420,63 @@ export function generateResumePdf(): jsPDF {
    * The facts all survive lower down, each in one place. Deleting it also freed
    * the 57pt that the ownership bullets below are spending.
    */
+  // Standard section names throughout — "Summary", "Technical Skills",
+  // "Professional Experience", "Education". An ATS keys on these exact strings;
+  // a cleverer heading ("What I'm good at") is an unrecognised block.
   w.sectionHeading('Summary');
-  w.text(resumeSummary, { gap: 12.2 });
+  w.text(role.summary, { gap: 12.2 });
 
   w.sectionHeading('Technical Skills');
-  capabilities.forEach((group) => {
-    w.skillRow(group.group, group.items.join(', '));
+  role.skills.forEach((row) => {
+    w.skillRow(row.label, row.items.join(', '));
   });
 
+  /*
+   * Experience is assembled from the shared record — company, role, dates and
+   * location always print identically, because inconsistent titles or dates
+   * across variants is the one thing a recruiter comparing two of these would
+   * actually catch. Only the BULLETS are selected per role, and only from the
+   * pool. Nothing here can invent a job.
+   */
   w.sectionHeading('Professional Experience');
+  const bulletPlan: Record<string, string[]> = {
+    cateina: role.cateinaPoints,
+    zeqon: role.zeqonPoints,
+  };
+
   experience
     .filter((entry) => entry.id !== 'education')
     .forEach((entry, index) => {
       if (index > 0) w.gap(9);
       w.roleLine(entry.role, entry.period);
       w.companyLine(entry.company, entry.location);
+
       /*
-       * Role-level points print for every role, including ones with named
-       * platforms under them. They used to be suppressed for Cateina because the
-       * highlights band already said the same things; the band is gone, and these
-       * bullets now carry what no project bullet can — the initiative, the
-       * stakeholder work, the mentoring. A résumé made only of "Built X" scores
-       * zero on every leadership, teamwork and communication check there is.
+       * Role-level points carry what no platform bullet can — the initiative,
+       * the stakeholder work, the mentoring. At least one prints on every
+       * variant: a résumé made only of "Built X" scores zero on every
+       * leadership, teamwork and communication check there is.
        */
-      entry.points
-        .slice(0, MAX_ROLE_BULLETS)
-        .forEach((point) => w.bullet(point));
-      entry.projects?.forEach((project) => {
+      bulletsFor(bulletPlan[entry.id] ?? []).forEach((point) =>
+        w.bullet(point),
+      );
+
+      // Platform order and selection are the role's call: the Angular variant
+      // has no reason to spend eight lines on ATM reconciliation, and the
+      // backend variant has no reason to lead with a component library.
+      const selections =
+        role.platforms.filter((selection) =>
+          entry.projects?.some((project) => project.id === selection.id),
+        ) ?? [];
+
+      selections.forEach((selection) => {
+        const project = entry.projects?.find((p) => p.id === selection.id);
+        if (!project) return;
         w.gap(3);
         w.projectLine(project.name, project.kind);
-        project.points
-          .slice(0, MAX_PROJECT_BULLETS)
-          .forEach((point) => w.bullet(point, SUB_INDENT));
+        bulletsFor(selection.points).forEach((point) =>
+          w.bullet(point, SUB_INDENT),
+        );
       });
     });
 
@@ -442,11 +488,16 @@ export function generateResumePdf(): jsPDF {
    * header is also what an ATS keys on, where the same sentence buried in a
    * bullet is just another line of prose.
    *
-   * Only two certifications follow it. Thirteen would push the page over and
-   * would read as padding; the programme graduation and the timed HackerRank
-   * assessment are the two that carry information, and they bring the
-   * "Full Stack Java Developer" keyword with them. The full list lives on the
-   * site, where there is room for it.
+   * Which certifications follow it is the role's call. Thirteen would push the
+   * page over and would read as padding, so each variant names the two to five
+   * that a screener for THAT role is actually looking for — the frontend one
+   * leads with Frontend Web Application Development, the integration one with
+   * the REST/OpenAPI module. The full list lives on the site.
+   *
+   * `java-full-stack` is the one variant that spends real space here, naming
+   * five, because for that role the certification track IS the Java evidence
+   * (see the header note in resumeRoles.ts) and burying it would be the
+   * dishonest kind of brevity.
    */
   w.sectionHeading('Awards & Certifications');
   w.roleLine(`${award.title} — ${award.org}`, award.shortDate);
@@ -465,12 +516,14 @@ export function generateResumePdf(): jsPDF {
    * Jul 2023 — see certificationsData — so the range covers the window with a
    * fact rather than leaving a screener to guess at it.
    */
-  // The count comes from the data, not a literal, so adding a certificate to the
-  // site can't leave a stale "13" on the résumé. It earns its place by telling a
-  // reader that the two named here are a selection rather than the whole record.
+  // Both counts come from the data, not literals, so adding a certificate to
+  // the site can't leave a stale "13" on the résumé and reordering a role's
+  // list can't leave a stale "2". The tail earns its place by telling a reader
+  // that the ones named are a selection rather than the whole record.
+  const shown = role.certificationsLine.split(' · ').length;
   w.skillRow(
     'Certifications',
-    `Full Stack Java Developer Master's Program, Simplilearn (Sep 2022 - Jul 2023, completed with distinction) · Java (Basic), HackerRank (2022) · 2 of ${certifications.length} completed`,
+    `${role.certificationsLine} · ${shown} of ${certifications.length} completed`,
   );
 
   const education = experience.find((entry) => entry.id === 'education');
@@ -486,7 +539,22 @@ export function generateResumePdf(): jsPDF {
   return w.doc;
 }
 
-export function downloadResume(): void {
-  const doc = generateResumePdf();
-  doc.save(resumeFileName());
+/**
+ * Page count for a variant, used by the one-page regression check.
+ *
+ * Exported rather than inlined into a test script so the assertion runs against
+ * the same code path the browser does — a check that measures a reimplementation
+ * of the layout is a check that passes while the real document breaks.
+ */
+export function resumePageCount(
+  roleId: ResumeRoleId = DEFAULT_RESUME_ROLE,
+): number {
+  return generateResumePdf(roleId).getNumberOfPages();
+}
+
+export function downloadResume(
+  roleId: ResumeRoleId = DEFAULT_RESUME_ROLE,
+): void {
+  const doc = generateResumePdf(roleId);
+  doc.save(resumeFileName(roleId));
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useInView } from '@/hooks/useInView';
 import { cn } from '@/lib/utils';
 
 export type StickyTone = 'amber' | 'teal' | 'pink';
@@ -21,6 +22,11 @@ interface StickyNoteProps {
   tone?: StickyTone;
   /** Degrees of rotation — keep under ~4 or it reads as a mistake. */
   tilt?: number;
+  /**
+   * Milliseconds to hold before the note settles in. Use it to place several
+   * notes in reading order rather than having them all land together.
+   */
+  delay?: number;
   className?: string;
   /**
    * Render children in a plain container instead of a paragraph. Needed when the
@@ -44,19 +50,39 @@ export function StickyNote({
   children,
   tone = 'amber',
   tilt = -2,
+  delay = 0,
   className,
   asBlock = false,
 }: StickyNoteProps) {
+  /*
+   * The note is placed as you reach it rather than being there already — see the
+   * note-enter utility in index.css for why only this layer animates.
+   *
+   * The resting rotation moved out of an inline `transform` and into the
+   * `--note-tilt` custom property: the keyframe has to own transform to animate
+   * it, and an inline style would win over the animation and pin the note to its
+   * final angle for the whole entrance.
+   */
+  const { ref, inView } = useInView<HTMLDivElement>();
+
   return (
     <div
+      ref={ref}
       className={cn(
         'relative isolate w-full max-w-[230px] px-5 pt-7 pb-6',
         'shadow-[0_1px_2px_rgba(0,0,0,0.14),0_10px_18px_-8px_rgba(0,0,0,0.32)]',
-        'transition-transform duration-300 hover:-translate-y-0.5 hover:rotate-0',
+        'transition-transform duration-(--duration-quick) hover:-translate-y-0.5 hover:rotate-0',
+        'note-enter',
+        inView && 'note-enter-run',
         toneClasses[tone],
         className,
       )}
-      style={{ transform: `rotate(${tilt}deg)` }}
+      style={
+        {
+          '--note-tilt': `${tilt}deg`,
+          '--note-delay': `${delay}ms`,
+        } as React.CSSProperties
+      }
     >
       {/* Tape across the top edge. */}
       <span

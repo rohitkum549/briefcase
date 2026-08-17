@@ -1,11 +1,11 @@
-import { StackSkeleton } from '@/components/skeletons/StackSkeleton';
 import { TechIcon } from '@/components/ui/tech-icon';
+import { TiltCard } from '@/components/ui/tilt-card';
 import { HandNote } from '@/components/ui/hand-note';
 import { InkArrow } from '@/components/ui/ink';
 import { useCapabilities } from '@/hooks/useCapabilities';
 
 export function Stack() {
-  const { data: capabilities, isLoading } = useCapabilities();
+  const capabilities = useCapabilities();
 
   return (
     <section id="stack" className="bg-muted/40 py-20 md:py-24">
@@ -20,10 +20,17 @@ export function Stack() {
           <h2 className="max-w-xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight md:text-[40px]">
             A full-stack toolkit, from interface to infrastructure.
           </h2>
-          <div className="relative hidden w-[195px] pb-2 lg:block">
+          {/*
+            The note travels; only the arrow is desktop-only.
+            This whole block used to be `hidden lg:block`, which meant a phone
+            got no handwriting in this section at all — and the handwriting is
+            the site's signature. The arrow genuinely needs a gutter to point
+            across, so it stays behind lg; the words just move inline.
+          */}
+          <div className="relative w-full pb-2 lg:w-[195px]">
             <InkArrow
               direction="down-left"
-              className="-top-8 left-4 h-10 w-10 text-accent-brand/55"
+              className="-top-8 left-4 hidden h-10 w-10 text-accent-brand/55 lg:block"
               length={150}
             />
             <HandNote tilt={2.5} className="block">
@@ -32,33 +39,29 @@ export function Stack() {
           </div>
         </div>
 
-        {isLoading || !capabilities ? (
-          <StackSkeleton />
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {capabilities.map((group) => (
-              <div key={group.id} className="rounded-2xl border bg-card p-6">
-                <div className="mb-5 border-b pb-3.5 font-mono text-[11px] tracking-[1.5px] text-muted-foreground uppercase">
-                  {group.group}
-                </div>
-                <div className="flex flex-col gap-3">
-                  {group.items.map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-center gap-2.5 text-[15px]"
-                    >
-                      <TechIcon
-                        name={item}
-                        className="size-4 flex-none text-accent-brand"
-                      />
-                      {item}
-                    </div>
-                  ))}
-                </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {capabilities.map((group) => (
+            <TiltCard key={group.id} className="rounded-2xl border bg-card p-6">
+              <div className="mb-5 border-b pb-3.5 font-mono text-[11px] tracking-[1.5px] text-muted-foreground uppercase">
+                {group.group}
               </div>
-            ))}
-          </div>
-        )}
+              <div className="flex flex-col gap-3">
+                {group.items.map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-2.5 text-[15px]"
+                  >
+                    <TechIcon
+                      name={item}
+                      className="size-4 flex-none text-accent-brand"
+                    />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </TiltCard>
+          ))}
+        </div>
       </div>
     </section>
   );

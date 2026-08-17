@@ -1,6 +1,6 @@
-import { useAsyncData } from '@/hooks/useAsyncData';
 import { portfolioContentService } from '@/services/portfolioContentService';
 
+/** Static content — see portfolioContentService for why this is not async. */
 export function useCurrentlyShipping() {
-  return useAsyncData(portfolioContentService.getCurrentlyShipping);
+  return portfolioContentService.getCurrentlyShipping();
 }

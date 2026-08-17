@@ -7,9 +7,29 @@ import type { ExperienceEntry } from '@/types/experience';
 import type { AboutFact } from '@/types/about';
 import type { CurrentlyShippingItem } from '@/types/currently-shipping';
 import type { Certification } from '@/types/certification';
-import { simulateNetwork } from '@/services/network';
 import * as data from '@/services/data/portfolioData';
 import { certifications } from '@/services/data/certificationsData';
+
+/*
+ * Content access. Synchronous, on purpose.
+ *
+ * Every getter used to return `simulateNetwork(value, 450)` — a promise that
+ * resolved after 450ms of nothing. The data is a module-scope import: it is in
+ * memory before the timer starts, so the delay hid nothing and bought nothing.
+ * What it cost was the first impression. All eight sections mounted at once, so
+ * the entire viewport was skeleton shimmer for 450ms and then jumped as the real
+ * content — taller than the skeletons in every case — pushed the page around.
+ *
+ * It also concealed a real failure mode. `useAsyncData` set `data: null` on a
+ * rejected promise while every section branched on `isLoading || !data`, so a
+ * failed load rendered the skeleton forever, and the `error` it captured was
+ * never read by any of the nine consumers.
+ *
+ * This layer stays because it is still the seam: if any of this content ever
+ * moves behind a real API, the getter changes and the hook changes with it, and
+ * no component has to know. `simulateNetwork` remains for contactService, where
+ * the wait is a real network call rather than a costume.
+ */
 
 export interface AboutContent {
   text: string;
@@ -21,38 +41,48 @@ export interface AiSystemContent {
   principles: AiPrinciple[];
 }
 
+// Composed once at module scope so the object identity is stable across
+// renders — a fresh object per call would break any consumer that puts these in
+// a dependency array.
+const aboutContent: AboutContent = {
+  text: data.aboutText,
+  facts: data.aboutFacts,
+};
+
+const aiSystemContent: AiSystemContent = {
+  stages: data.aiStages,
+  principles: data.aiPrinciples,
+};
+
 export const portfolioContentService = {
-  getHero(): Promise<HeroContent> {
-    return simulateNetwork(data.heroContent);
+  getHero(): HeroContent {
+    return data.heroContent;
   },
-  getServices(): Promise<Service[]> {
-    return simulateNetwork(data.services);
+  getServices(): Service[] {
+    return data.services;
   },
-  getProjects(): Promise<Project[]> {
-    return simulateNetwork(data.projects);
+  getProjects(): Project[] {
+    return data.projects;
   },
-  getCapabilities(): Promise<CapabilityGroup[]> {
-    return simulateNetwork(data.capabilities);
+  getCapabilities(): CapabilityGroup[] {
+    return data.capabilities;
   },
-  getAiSystemContent(): Promise<AiSystemContent> {
-    return simulateNetwork({
-      stages: data.aiStages,
-      principles: data.aiPrinciples,
-    });
+  getAiSystemContent(): AiSystemContent {
+    return aiSystemContent;
   },
-  getExperience(): Promise<ExperienceEntry[]> {
-    return simulateNetwork(data.experience);
+  getExperience(): ExperienceEntry[] {
+    return data.experience;
   },
-  getAbout(): Promise<AboutContent> {
-    return simulateNetwork({ text: data.aboutText, facts: data.aboutFacts });
+  getAbout(): AboutContent {
+    return aboutContent;
   },
-  getCertifications(): Promise<Certification[]> {
-    return simulateNetwork(certifications);
+  getCertifications(): Certification[] {
+    return certifications;
   },
-  getCurrentlyShipping(): Promise<CurrentlyShippingItem[]> {
-    return simulateNetwork(data.currentlyShipping);
+  getCurrentlyShipping(): CurrentlyShippingItem[] {
+    return data.currentlyShipping;
   },
-  getStackTags(): Promise<string[]> {
-    return simulateNetwork(data.stackTags, 0);
+  getStackTags(): string[] {
+    return data.stackTags;
   },
 };

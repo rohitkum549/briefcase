@@ -1,5 +1,4 @@
 import { useMemo, useState, useCallback, useRef } from 'react';
-import { CertificationsSkeleton } from '@/components/skeletons/CertificationsSkeleton';
 import { AwardFeature } from '@/components/ui/award-feature';
 import { StoryRing } from '@/components/ui/story-ring';
 import { StoryViewer } from '@/components/ui/story-viewer';
@@ -32,7 +31,7 @@ function groupByYear(items: Certification[]) {
 }
 
 export function Certifications() {
-  const { data: certifications, isLoading } = useCertifications();
+  const certifications = useCertifications();
   const [openAt, setOpenAt] = useState<number | null>(null);
   const [seen, setSeen] = useState<Set<string>>(new Set());
   /** Which bubble opened the viewer, so focus can go back to it on close. */
@@ -97,75 +96,71 @@ export function Certifications() {
           )}
         </div>
 
-        {isLoading || !certifications ? (
-          <CertificationsSkeleton />
-        ) : (
-          <>
-            {/*
-              Horizontal scroll with snap: 13 bubbles fit no viewport, and a
-              swipeable rail is the native behaviour this borrows from. The
-              scrollbar is hidden but the region stays keyboard-scrollable.
+        <>
+          {/*
+            Horizontal scroll with snap: 13 bubbles fit no viewport, and a
+            swipeable rail is the native behaviour this borrows from. The
+            scrollbar is hidden but the region stays keyboard-scrollable.
 
-              The negative margin plus matching padding lets the rail bleed to
-              the viewport edge while its first bubble still lines up with the
-              heading above it. `scroll-pl-*` is required for that to hold:
-              mandatory snapping otherwise performs an initial snap that pulls
-              the first item flush to the container's border edge, eating the
-              padding and leaving the rail visibly misaligned with the text.
-            */}
-            <div className="no-scrollbar -mx-5 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-2 md:-mx-10 md:scroll-pl-10 md:px-10">
-              {grouped.map(([year, items], groupIndex) => (
-                <div key={year} className="flex flex-none items-start gap-5">
-                  {/* Year tick — the timeline marker between groups. Reuses the
-                      hairline + mono-tick language of the experience timeline. */}
-                  {groupIndex > 0 && (
-                    <div
-                      aria-hidden="true"
-                      className="mt-2 flex h-[100px] flex-none items-center"
-                    >
-                      <span className="h-full w-px bg-border" />
-                    </div>
-                  )}
-                  <div className="flex flex-col gap-4">
-                    <span className="font-mono text-[11px] tracking-[2px] text-muted-foreground tabular-nums">
-                      {year}
-                    </span>
-                    <div className="flex gap-4">
-                      {items.map((item) => {
-                        const index = certifications.indexOf(item);
-                        return (
-                          <StoryRing
-                            key={item.id}
-                            issuerId={item.issuerId}
-                            label={certShortTitles[item.id] ?? item.title}
-                            meta={item.month ?? String(item.year)}
-                            viewed={seen.has(item.id)}
-                            onClick={(element) => {
-                              openerRef.current = element;
-                              setOpenAt(index);
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
+            The negative margin plus matching padding lets the rail bleed to
+            the viewport edge while its first bubble still lines up with the
+            heading above it. `scroll-pl-*` is required for that to hold:
+            mandatory snapping otherwise performs an initial snap that pulls
+            the first item flush to the container's border edge, eating the
+            padding and leaving the rail visibly misaligned with the text.
+          */}
+          <div className="no-scrollbar -mx-5 flex snap-x snap-mandatory scroll-pl-5 gap-5 overflow-x-auto px-5 pb-2 md:-mx-10 md:scroll-pl-10 md:px-10">
+            {grouped.map(([year, items], groupIndex) => (
+              <div key={year} className="flex flex-none items-start gap-5">
+                {/* Year tick — the timeline marker between groups. Reuses the
+                    hairline + mono-tick language of the experience timeline. */}
+                {groupIndex > 0 && (
+                  <div
+                    aria-hidden="true"
+                    className="mt-2 flex h-[100px] flex-none items-center"
+                  >
+                    <span className="h-full w-px bg-border" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-4">
+                  <span className="font-mono text-[11px] tracking-[2px] text-muted-foreground tabular-nums">
+                    {year}
+                  </span>
+                  <div className="flex gap-4">
+                    {items.map((item) => {
+                      const index = certifications.indexOf(item);
+                      return (
+                        <StoryRing
+                          key={item.id}
+                          issuerId={item.issuerId}
+                          label={certShortTitles[item.id] ?? item.title}
+                          meta={item.month ?? String(item.year)}
+                          viewed={seen.has(item.id)}
+                          onClick={(element) => {
+                            openerRef.current = element;
+                            setOpenAt(index);
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+          </div>
 
-            <p className="mt-5 text-[13px] text-muted-foreground">
-              Tap any one for its credential ID and a link that verifies it.
-            </p>
+          <p className="mt-5 text-[13px] text-muted-foreground">
+            Tap any one for its credential ID and a link that verifies it.
+          </p>
 
-            <StoryViewer
-              items={certifications}
-              openAt={openAt}
-              onClose={() => setOpenAt(null)}
-              onSeen={markSeen}
-              restoreFocusRef={openerRef}
-            />
-          </>
-        )}
+          <StoryViewer
+            items={certifications}
+            openAt={openAt}
+            onClose={() => setOpenAt(null)}
+            onSeen={markSeen}
+            restoreFocusRef={openerRef}
+          />
+        </>
       </div>
     </section>
   );
