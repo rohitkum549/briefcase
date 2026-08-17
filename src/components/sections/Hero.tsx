@@ -78,7 +78,7 @@ function splitEyebrow(eyebrow: string): { role: string; rest: string } {
 
 export function Hero() {
   const hero = useHeroContent();
-  const handleDownloadResume = useResumeDownload();
+  const { download: downloadResume, pending } = useResumeDownload();
 
   return (
     <section id="top" className="py-20 md:py-24">
@@ -129,9 +129,10 @@ export function Hero() {
                 variant="outline"
                 size="lg"
                 className="rounded-full border-2 border-foreground px-6 text-foreground"
-                onClick={handleDownloadResume}
+                onClick={() => void downloadResume()}
+                disabled={pending !== null}
               >
-                Download résumé
+                {pending ? 'Preparing…' : 'Download résumé'}
               </Button>
 
               {/* Handwritten aside pointing at the résumé button. */}
