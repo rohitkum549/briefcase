@@ -38,9 +38,23 @@ export function useContactForm(): UseContactFormResult {
   const [errors, setErrors] = useState<ContactFormErrors>({});
   const [status, setStatus] = useState<ContactSubmissionStatus>('idle');
 
+  /*
+   * Clear a field's error as soon as it is edited.
+   *
+   * Validation runs on submit, which is right — nagging while someone is still
+   * typing their email is worse. But the error then stayed on screen while they
+   * fixed it: "Message should be at least 10 characters." sat under a field they
+   * had already typed eighty characters into, until they submitted again.
+   */
   const handleChange = useCallback(
     (field: keyof ContactFormValues, value: string) => {
       setValues((prev) => ({ ...prev, [field]: value }));
+      setErrors((prev) => {
+        if (!prev[field]) return prev; // no re-render when nothing was wrong
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
     },
     [],
   );

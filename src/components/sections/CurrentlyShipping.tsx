@@ -1,4 +1,3 @@
-import { CurrentlyShippingSkeleton } from '@/components/skeletons/CurrentlyShippingSkeleton';
 import { HandNote } from '@/components/ui/hand-note';
 import { TechIcon } from '@/components/ui/tech-icon';
 import { useCurrentlyShipping } from '@/hooks/useCurrentlyShipping';
@@ -16,9 +15,9 @@ import { useCurrentlyShipping } from '@/hooks/useCurrentlyShipping';
  * can't leave a bare heading over blank space on the live site.
  */
 export function CurrentlyShipping() {
-  const { data: items, isLoading } = useCurrentlyShipping();
+  const items = useCurrentlyShipping();
 
-  if (!isLoading && (!items || items.length === 0)) return null;
+  if (items.length === 0) return null;
 
   return (
     <section id="now" className="py-20 md:py-24">
@@ -40,39 +39,35 @@ export function CurrentlyShipping() {
           </div>
         </div>
 
-        {isLoading || !items ? (
-          <CurrentlyShippingSkeleton />
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {items.map((item) => (
-              <div key={item.id} className="rounded-2xl border bg-card p-6">
-                <div className="mb-4 font-mono text-[10px] tracking-[1.5px] text-accent-brand uppercase">
-                  {item.status}
-                </div>
-                <h3 className="mb-2 font-heading text-lg font-bold tracking-tight">
-                  {item.title}
-                </h3>
-                <p className="mb-4 text-[15px] leading-relaxed text-muted-foreground text-pretty">
-                  {item.desc}
-                </p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                  {item.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-muted-foreground"
-                    >
-                      <TechIcon
-                        name={tag}
-                        className="size-3.5 flex-none text-accent-brand"
-                      />
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {items.map((item) => (
+            <div key={item.id} className="rounded-2xl border bg-card p-6">
+              <div className="mb-4 font-mono text-[10px] tracking-[1.5px] text-accent-brand uppercase">
+                {item.status}
               </div>
-            ))}
-          </div>
-        )}
+              <h3 className="mb-2 font-heading text-lg font-bold tracking-tight">
+                {item.title}
+              </h3>
+              <p className="mb-4 text-[15px] leading-relaxed text-muted-foreground text-pretty">
+                {item.desc}
+              </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                {item.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-muted-foreground"
+                  >
+                    <TechIcon
+                      name={tag}
+                      className="size-3.5 flex-none text-accent-brand"
+                    />
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

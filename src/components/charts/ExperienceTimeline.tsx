@@ -1,3 +1,5 @@
+import { useInView } from '@/hooks/useInView';
+import { cn } from '@/lib/utils';
 import type { ExperienceEntry } from '@/types/experience';
 
 /*
@@ -41,6 +43,10 @@ interface Props {
 }
 
 export function ExperienceTimeline({ entries }: Props) {
+  // Draws itself across the axis when reached, like the project visuals.
+  // Above the early return: hooks have to run in the same order every render.
+  const { ref, inView } = useInView<SVGSVGElement>();
+
   const rows = entries.filter((entry) => entry.span);
   if (rows.length === 0) return null;
 
@@ -49,8 +55,9 @@ export function ExperienceTimeline({ entries }: Props) {
   return (
     <div className="mb-14 hidden md:block">
       <svg
+        ref={ref}
         viewBox={`0 0 ${WIDTH} ${height}`}
-        className="h-auto w-full"
+        className={cn('h-auto w-full chart-draw', inView && 'chart-draw-run')}
         role="img"
         aria-label={rows
           .map(

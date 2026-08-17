@@ -1,4 +1,5 @@
 import { Award as AwardIcon, ExternalLink } from 'lucide-react';
+import { InkCircle } from '@/components/ui/ink';
 import { HandNote } from '@/components/ui/hand-note';
 import { award } from '@/services/data/portfolioData';
 
@@ -50,8 +51,23 @@ export function AwardFeature() {
             </span>
           </div>
 
-          <h3 className="font-heading text-[26px] leading-[1.1] font-bold tracking-tight md:text-[32px]">
+          {/*
+            The circled bit. InkCircle was drawn for exactly this gesture — "this
+            is the important one" — and had never been used anywhere, so the
+            vocabulary carried a mark it never spoke. The award is the single
+            thing on this page an employer chose to give rather than a course
+            issuing on completion, which makes it the one item worth ringing.
+
+            `inline-block` on the heading so the circle can size to the words
+            rather than the column, and the delay lets the title land first.
+          */}
+          <h3 className="relative inline-block font-heading text-[26px] leading-[1.1] font-bold tracking-tight md:text-[32px]">
             {award.title}
+            <InkCircle
+              className="-top-2.5 -left-4 h-[calc(100%+22px)] w-[calc(100%+34px)] text-accent-brand/45"
+              length={560}
+              delayMs={320}
+            />
           </h3>
           <p className="mt-1.5 text-[15px] text-muted-foreground">
             {award.org}
@@ -83,10 +99,7 @@ export function AwardFeature() {
 
         {/* Hidden below md: at narrow widths it lands under the citation and
             reads as part of it rather than as a note in the margin. */}
-        <HandNote
-          tilt={-4}
-          className="mt-1 hidden max-w-[136px] flex-none md:block"
-        >
+        <HandNote tilt={-4} className="mt-1 max-w-[136px] flex-none md:mt-1">
           the one nobody handed out for finishing a course
         </HandNote>
       </div>

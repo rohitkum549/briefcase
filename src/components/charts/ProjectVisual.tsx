@@ -1,3 +1,5 @@
+import { useInView } from '@/hooks/useInView';
+import { cn } from '@/lib/utils';
 import type { ProjectVisual as Variant } from '@/types/project';
 
 /*
@@ -28,11 +30,16 @@ interface VisualProps {
 }
 
 function Frame({ children }: { children: React.ReactNode }) {
+  // Every variant draws itself in when it scrolls into view — see the
+  // chart-draw utility in index.css. One wipe here covers all six.
+  const { ref, inView } = useInView<SVGSVGElement>();
+
   return (
     <svg
+      ref={ref}
       viewBox={VIEWBOX}
       aria-hidden="true"
-      className="h-full w-full"
+      className={cn('h-full w-full chart-draw', inView && 'chart-draw-run')}
       preserveAspectRatio="xMidYMid meet"
     >
       {children}

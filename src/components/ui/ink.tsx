@@ -17,13 +17,23 @@ interface InkProps {
   delayMs?: number;
 }
 
+/*
+ * The delay is passed down as a custom property, not as `animationDelay`.
+ *
+ * It used to be an inline `animationDelay` on the <svg> while the animation runs
+ * on the <path> inside it — and animation-delay is not an inherited property, so
+ * it reached nothing. Every mark on the page has therefore been drawing at the
+ * same instant since the stagger was written, which is why the 100/120/260/620ms
+ * offsets never read as a sequence. Custom properties DO inherit, which is also
+ * why --draw-length worked all along.
+ */
 function useInkAnimation(length: number, delayMs: number) {
   const { ref, inView } = useInView<SVGSVGElement>();
   return {
     ref,
     style: {
       '--draw-length': length,
-      animationDelay: `${delayMs}ms`,
+      '--ink-delay': `${delayMs}ms`,
     } as React.CSSProperties,
     pathClass: cn('ink-draw', inView && 'ink-draw-run'),
   };

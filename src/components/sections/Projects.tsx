@@ -1,10 +1,9 @@
-import { ProjectsSkeleton } from '@/components/skeletons/ProjectsSkeleton';
 import { ProjectCard } from '@/components/sections/ProjectCard';
 import { StickyNote } from '@/components/ui/sticky-note';
 import { useProjects } from '@/hooks/useProjects';
 
 export function Projects() {
-  const { data: projects, isLoading } = useProjects();
+  const projects = useProjects();
 
   return (
     <section id="work" className="py-20 md:py-24">
@@ -26,24 +25,24 @@ export function Projects() {
               Fintech is a good teacher. Nothing here was allowed to fail
               quietly.
             </StickyNote>
-            <a
-              href="#contact"
-              className="font-mono text-xs tracking-wider text-muted-foreground uppercase"
-            >
-              All projects →
-            </a>
+            {/*
+              This said "All projects →" and linked to #contact. There is no
+              all-projects view, so it promised a page that does not exist and
+              then delivered a contact form — the kind of small dishonesty a
+              visitor notices immediately because they clicked it on purpose.
+              Until case-study pages exist, it states a fact instead.
+            */}
+            <span className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
+              {projects.length} platforms · 2023—2026
+            </span>
           </div>
         </div>
 
-        {isLoading || !projects ? (
-          <ProjectsSkeleton />
-        ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          {projects.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -39,11 +39,18 @@ export function StoryRing({
     <button
       type="button"
       onClick={(event) => onClick(event.currentTarget)}
-      className="group flex w-[92px] flex-none snap-start flex-col items-center gap-2.5 md:w-[104px]"
+      /*
+       * The ring is the focus target, not the button box: a rectangular outline
+       * around a circular bubble plus its two-line label reads as a stray box.
+       * `outline-none` here, ring drawn on the child below, and the hover lift
+       * is matched on focus so keyboard and pointer get the same feedback.
+       */
+      className="group flex w-[92px] flex-none snap-start flex-col items-center gap-2.5 outline-none md:w-[104px]"
     >
       <span
         className={cn(
           'rounded-full p-[2px] transition-colors',
+          'group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-accent-brand',
           viewed ? 'bg-border' : 'bg-accent-brand',
         )}
       >
@@ -52,7 +59,7 @@ export function StoryRing({
           <span
             className={cn(
               'flex size-[68px] items-center justify-center rounded-full border bg-card transition-transform md:size-[76px]',
-              'group-hover:-translate-y-0.5',
+              'group-hover:-translate-y-0.5 group-focus-visible:-translate-y-0.5',
             )}
           >
             <TechIcon

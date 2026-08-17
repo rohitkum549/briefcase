@@ -1,4 +1,3 @@
-import { ExperienceSkeleton } from '@/components/skeletons/ExperienceSkeleton';
 import { ExperienceTimeline } from '@/components/charts/ExperienceTimeline';
 import { HandNote } from '@/components/ui/hand-note';
 import { InkArrow } from '@/components/ui/ink';
@@ -20,7 +19,7 @@ import { useExperience } from '@/hooks/useExperience';
  * light, #2dd4bf dark), so the override is gone.
  */
 export function Experience() {
-  const { data: experience, isLoading } = useExperience();
+  const experience = useExperience();
 
   return (
     <section id="experience" className="bg-muted/40 py-20 md:py-24">
@@ -35,10 +34,11 @@ export function Experience() {
           <h2 className="max-w-xl font-heading text-[28px] leading-[1.1] font-bold tracking-tight md:text-[40px]">
             Three platforms, one role, three years.
           </h2>
-          <div className="relative hidden w-[210px] pb-2 lg:block">
+          {/* Note inline on mobile, margin note on desktop — see Stack.tsx. */}
+          <div className="relative w-full pb-2 lg:w-[210px]">
             <InkArrow
               direction="down-left"
-              className="-top-9 left-6 h-11 w-11 text-accent-brand/60"
+              className="-top-9 left-6 hidden h-11 w-11 text-accent-brand/60 lg:block"
               length={150}
             />
             <HandNote tilt={-2.5} className="block">
@@ -47,88 +47,84 @@ export function Experience() {
           </div>
         </div>
 
-        {isLoading || !experience ? (
-          <ExperienceSkeleton />
-        ) : (
-          <>
-            <ExperienceTimeline entries={experience} />
+        <>
+          <ExperienceTimeline entries={experience} />
 
-            <div className="flex flex-col">
-              {experience.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="grid grid-cols-1 gap-6 border-t py-8 md:grid-cols-[220px_1fr] md:gap-10"
-                >
-                  <div>
-                    <div className="font-mono text-xs tracking-wider text-accent-brand">
-                      {entry.period}
-                    </div>
-                    <div className="mt-2 text-sm text-muted-foreground">
-                      {entry.location}
-                    </div>
+          <div className="flex flex-col">
+            {experience.map((entry) => (
+              <div
+                key={entry.id}
+                className="grid grid-cols-1 gap-6 border-t py-8 md:grid-cols-[220px_1fr] md:gap-10"
+              >
+                <div>
+                  <div className="font-mono text-xs tracking-wider text-accent-brand">
+                    {entry.period}
                   </div>
-                  <div>
-                    <h3 className="mb-1 font-heading text-[22px] font-bold tracking-tight">
-                      {entry.role}
-                    </h3>
-                    <div className="mb-3 text-[15px] text-muted-foreground">
-                      {entry.company}
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {entry.location}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="mb-1 font-heading text-[22px] font-bold tracking-tight">
+                    {entry.role}
+                  </h3>
+                  <div className="mb-3 text-[15px] text-muted-foreground">
+                    {entry.company}
+                  </div>
+                  {entry.stack && (
+                    <div className="mb-4 flex flex-wrap gap-x-2.5 gap-y-1.5 font-mono text-[11px] tracking-wider text-accent-brand">
+                      {entry.stack.map((tech) => (
+                        <span key={tech}>{tech}</span>
+                      ))}
                     </div>
-                    {entry.stack && (
-                      <div className="mb-4 flex flex-wrap gap-x-2.5 gap-y-1.5 font-mono text-[11px] tracking-wider text-accent-brand">
-                        {entry.stack.map((tech) => (
-                          <span key={tech}>{tech}</span>
-                        ))}
+                  )}
+                  <div className="flex flex-col gap-2.5">
+                    {entry.points.map((point, i) => (
+                      <div
+                        key={i}
+                        className="flex gap-3 text-[15px] leading-relaxed text-muted-foreground"
+                      >
+                        <span className="flex-none text-accent-brand">→</span>
+                        {point}
                       </div>
-                    )}
-                    <div className="flex flex-col gap-2.5">
-                      {entry.points.map((point, i) => (
-                        <div
-                          key={i}
-                          className="flex gap-3 text-[15px] leading-relaxed text-muted-foreground"
-                        >
-                          <span className="flex-none text-accent-brand">→</span>
-                          {point}
+                    ))}
+                  </div>
+
+                  {/* Platforms delivered inside this role. Nested rather than
+                      promoted to their own entries, so the company, dates and
+                      location aren't repeated three times. */}
+                  {entry.projects && (
+                    <div className="mt-7 flex flex-col gap-6 border-l-2 border-accent-brand/25 pl-5">
+                      {entry.projects.map((project) => (
+                        <div key={project.id}>
+                          <div className="font-heading text-[17px] font-bold tracking-tight">
+                            {project.name}
+                          </div>
+                          <div className="mt-0.5 mb-2.5 font-mono text-[11px] tracking-[1.5px] text-muted-foreground uppercase">
+                            {project.kind}
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            {project.points.map((point, i) => (
+                              <div
+                                key={i}
+                                className="flex gap-3 text-[14.5px] leading-relaxed text-muted-foreground"
+                              >
+                                <span className="flex-none text-accent-brand/70">
+                                  ·
+                                </span>
+                                {point}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ))}
                     </div>
-
-                    {/* Platforms delivered inside this role. Nested rather than
-                        promoted to their own entries, so the company, dates and
-                        location aren't repeated three times. */}
-                    {entry.projects && (
-                      <div className="mt-7 flex flex-col gap-6 border-l-2 border-accent-brand/25 pl-5">
-                        {entry.projects.map((project) => (
-                          <div key={project.id}>
-                            <div className="font-heading text-[17px] font-bold tracking-tight">
-                              {project.name}
-                            </div>
-                            <div className="mt-0.5 mb-2.5 font-mono text-[11px] tracking-[1.5px] text-muted-foreground uppercase">
-                              {project.kind}
-                            </div>
-                            <div className="flex flex-col gap-2">
-                              {project.points.map((point, i) => (
-                                <div
-                                  key={i}
-                                  className="flex gap-3 text-[14.5px] leading-relaxed text-muted-foreground"
-                                >
-                                  <span className="flex-none text-accent-brand/70">
-                                    ·
-                                  </span>
-                                  {point}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </>
-        )}
+              </div>
+            ))}
+          </div>
+        </>
       </div>
     </section>
   );

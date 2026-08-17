@@ -2,15 +2,26 @@ import { TechIcon } from '@/components/ui/tech-icon';
 import { useStackTags } from '@/hooks/useStackTags';
 
 export function TechMarquee() {
-  const { data: tags } = useStackTags();
-  const items = tags ?? [];
+  const items = useStackTags();
 
   return (
+    /*
+     * The mask fades both ends into the band instead of letting tags collide
+     * with a hard edge — the difference between a strip that scrolls and one
+     * that reads as continuous.
+     */
     <section
-      className="overflow-hidden bg-deep py-[22px]"
+      className="overflow-hidden bg-deep py-[22px] [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
       aria-label="Technology stack"
     >
-      <div className="flex w-max animate-[marquee_30s_linear_infinite]">
+      {/*
+        Pauses on hover, and stops entirely under reduced motion.
+        WCAG 2.2.2 requires a way to stop any motion that runs longer than five
+        seconds; this ran forever with neither. `motion-reduce:animate-none`
+        rather than a zeroed duration on purpose — an infinite loop with a ~0
+        duration burns frames re-running instead of stopping.
+      */}
+      <div className="flex w-max animate-[marquee_30s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
         {[0, 1].map((copy) => (
           <div
             key={copy}

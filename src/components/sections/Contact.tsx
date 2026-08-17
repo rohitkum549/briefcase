@@ -29,7 +29,7 @@ export function Contact() {
         there's real room beside the column — below that it's hidden rather than
         squeezed.
       */}
-      <div className="pointer-events-none absolute top-[24%] left-[5%] hidden xl:block">
+      <div className="pointer-events-none absolute top-[24%] left-[5%] xl:block">
         <StickyNote tone="amber" tilt={-3.5} className="max-w-[196px]">
           Fastest reply is email. I actually read it.
         </StickyNote>
@@ -94,9 +94,19 @@ export function Contact() {
                 className="mt-1.5 border-on-deep/20 bg-on-deep/10 text-on-deep placeholder:text-on-deep/40"
                 placeholder="Ada Lovelace"
                 aria-invalid={Boolean(errors.name)}
+                aria-describedby={
+                  errors.name ? 'contact-name-error' : undefined
+                }
+                autoComplete="name"
               />
               {errors.name && (
-                <p className="mt-1.5 text-sm text-red-300">{errors.name}</p>
+                <p
+                  id="contact-name-error"
+                  role="alert"
+                  className="mt-1.5 text-sm text-red-300"
+                >
+                  {errors.name}
+                </p>
               )}
             </div>
             <div>
@@ -111,9 +121,19 @@ export function Contact() {
                 className="mt-1.5 border-on-deep/20 bg-on-deep/10 text-on-deep placeholder:text-on-deep/40"
                 placeholder="ada@example.com"
                 aria-invalid={Boolean(errors.email)}
+                aria-describedby={
+                  errors.email ? 'contact-email-error' : undefined
+                }
+                autoComplete="email"
               />
               {errors.email && (
-                <p className="mt-1.5 text-sm text-red-300">{errors.email}</p>
+                <p
+                  id="contact-email-error"
+                  role="alert"
+                  className="mt-1.5 text-sm text-red-300"
+                >
+                  {errors.email}
+                </p>
               )}
             </div>
           </div>
@@ -128,9 +148,18 @@ export function Contact() {
               className="mt-1.5 min-h-32 border-on-deep/20 bg-on-deep/10 text-on-deep placeholder:text-on-deep/40"
               placeholder="What are you building?"
               aria-invalid={Boolean(errors.message)}
+              aria-describedby={
+                errors.message ? 'contact-message-error' : undefined
+              }
             />
             {errors.message && (
-              <p className="mt-1.5 text-sm text-red-300">{errors.message}</p>
+              <p
+                id="contact-message-error"
+                role="alert"
+                className="mt-1.5 text-sm text-red-300"
+              >
+                {errors.message}
+              </p>
             )}
           </div>
           <Button

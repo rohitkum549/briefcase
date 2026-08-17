@@ -1,9 +1,8 @@
-import { ServicesSkeleton } from '@/components/skeletons/ServicesSkeleton';
 import { StickyNote } from '@/components/ui/sticky-note';
 import { useServices } from '@/hooks/useServices';
 
 export function Services() {
-  const { data: services, isLoading } = useServices();
+  const services = useServices();
 
   return (
     <section id="services" className="bg-card py-20 md:py-24">
@@ -30,27 +29,23 @@ export function Services() {
         </div>
 
         <div className="mt-10">
-          {isLoading || !services ? (
-            <ServicesSkeleton />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-14">
-              {services.map((service) => (
-                <div key={service.id} className="flex gap-5 border-t py-7">
-                  <span className="flex-none font-heading text-xl font-bold tracking-tight text-accent-brand">
-                    {service.no}
-                  </span>
-                  <div>
-                    <h3 className="mb-2 font-heading text-xl font-bold tracking-tight">
-                      {service.title}
-                    </h3>
-                    <p className="text-[15px] leading-relaxed text-muted-foreground text-pretty">
-                      {service.body}
-                    </p>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-14">
+            {services.map((service) => (
+              <div key={service.id} className="flex gap-5 border-t py-7">
+                <span className="flex-none font-heading text-xl font-bold tracking-tight text-accent-brand">
+                  {service.no}
+                </span>
+                <div>
+                  <h3 className="mb-2 font-heading text-xl font-bold tracking-tight">
+                    {service.title}
+                  </h3>
+                  <p className="text-[15px] leading-relaxed text-muted-foreground text-pretty">
+                    {service.body}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

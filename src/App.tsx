@@ -15,8 +15,20 @@ import { Toaster } from '@/components/ui/sonner';
 function App() {
   return (
     <>
+      {/*
+        Visible only when focused. Without it a keyboard visitor tabs past the
+        wordmark, six nav links, the theme toggle and the CTA before reaching the
+        heading — on every single anchor jump, since focus returns to the top of
+        the document each time.
+      */}
+      <a
+        href="#main"
+        className="sr-only rounded-md bg-accent-brand px-4 py-2 font-mono text-[11px] tracking-wider text-background uppercase focus-visible:not-sr-only focus-visible:fixed focus-visible:top-3 focus-visible:left-3 focus-visible:z-[60]"
+      >
+        Skip to content
+      </a>
       <Header />
-      <main>
+      <main id="main">
         <Hero />
         <TechMarquee />
         <Services />
