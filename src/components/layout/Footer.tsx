@@ -1,12 +1,14 @@
-import { siteConfig } from '@/config/site';
+import { siteConfig, socialLinks } from '@/config/site';
 import { ResumePicker } from '@/components/layout/ResumePicker';
+import { getSocialIcon } from '@/lib/socialIcons';
 
 export function Footer() {
   const year = new Date().getFullYear();
+  const profileLinks = socialLinks.filter((l) => l.id !== 'phone');
 
   return (
     <footer className="border-t border-on-deep/10 bg-deep py-10 text-on-deep">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-3.5 px-5 md:flex-row md:justify-between md:px-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-4 px-5 md:flex-row md:justify-between md:px-10">
         <div className="flex items-center gap-3">
           <svg
             width="26"
@@ -31,17 +33,30 @@ export function Footer() {
               strokeLinejoin="round"
             />
           </svg>
-          {/*
-            The wordmark reads "rohit jha" exactly as before — same font, size,
-            weight and colour. "jha" is now the trigger for the résumé selector.
-            Making the second half of an existing word the control is what keeps
-            this an Easter egg: nothing was added to the footer, so there is no
-            new affordance to notice until you hover it.
-          */}
           <span className="font-heading text-sm font-bold">
             rohit <ResumePicker />
           </span>
         </div>
+
+        {/* Brand Icon Links Row */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {profileLinks.map((link) => {
+            const Icon = getSocialIcon(link.icon);
+            return (
+              <a
+                key={link.id}
+                href={link.href}
+                target="_blank"
+                rel="noreferrer"
+                title={`${link.label} (${link.handle})`}
+                className="flex size-7 items-center justify-center rounded-full bg-on-deep/10 text-on-deep/70 transition-all hover:bg-on-deep hover:text-deep hover:scale-110"
+              >
+                <Icon className="size-3.5" />
+              </a>
+            );
+          })}
+        </div>
+
         <div className="font-mono text-[11px] tracking-wider text-on-deep/60">
           © {year} {siteConfig.name.toUpperCase()} · DESIGNED &amp; BUILT IN
           INDIA

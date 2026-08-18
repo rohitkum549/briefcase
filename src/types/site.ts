@@ -1,10 +1,26 @@
-export type SocialIcon = 'github' | 'linkedin' | 'phone';
+export type SocialIcon =
+  | 'github'
+  | 'linkedin'
+  | 'leetcode'
+  | 'hackerearth'
+  | 'hackerrank'
+  | 'codechef'
+  | 'codeforces'
+  | 'geeksforgeeks'
+  | 'kaggle'
+  | 'phone';
+
+export type PlatformCategory = 'social' | 'coding' | 'competitive' | 'contact';
 
 export interface SocialLink {
   id: string;
   label: string;
+  handle?: string;
   href: string;
   icon: SocialIcon;
+  category?: PlatformCategory;
+  accentColor?: string;
+  badge?: string;
 }
 
 export interface SiteConfig {
@@ -17,4 +33,11 @@ export interface SiteConfig {
   phone: string;
   githubUrl: string;
   linkedinUrl: string;
+  leetcodeUrl: string;
+  hackerearthUrl: string;
+  hackerrankUrl: string;
+  codechefUrl: string;
+  codeforcesUrl: string;
+  geeksforgeeksUrl: string;
+  kaggleUrl: string;
 }

@@ -24,7 +24,15 @@ import {
   SiHtml5,
   SiUdemy,
   SiHackerrank,
+  SiGithub,
+  SiLeetcode,
+  SiHackerearth,
+  SiCodechef,
+  SiCodeforces,
+  SiGeeksforgeeks,
+  SiKaggle,
 } from 'react-icons/si';
+import { FaLinkedin } from 'react-icons/fa6';
 
 type IconComponent = ComponentType<{ className?: string }>;
 
@@ -49,6 +57,14 @@ const iconsByName: Record<string, IconComponent> = {
   KUMA: SiKuma,
   DOCKER: SiDocker,
   GIT: SiGit,
+  GITHUB: SiGithub,
+  LINKEDIN: FaLinkedin,
+  LEETCODE: SiLeetcode,
+  HACKEREARTH: SiHackerearth,
+  CODECHEF: SiCodechef,
+  CODEFORCES: SiCodeforces,
+  GEEKSFORGEEKS: SiGeeksforgeeks,
+  KAGGLE: SiKaggle,
   GITLAB: SiGitlab,
   COOLIFY: SiCoolify,
   POSTMAN: SiPostman,

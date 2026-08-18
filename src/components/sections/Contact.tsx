@@ -1,17 +1,11 @@
-import { ExternalLink, Phone } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { StickyNote } from '@/components/ui/sticky-note';
 import { useContactForm } from '@/hooks/useContactForm';
-import { siteConfig, socialLinks } from '@/config/site';
-
-const socialIcons = {
-  github: ExternalLink,
-  linkedin: ExternalLink,
-  phone: Phone,
-} as const;
+import { siteConfig } from '@/config/site';
 
 export function Contact() {
   const { values, errors, status, handleChange, handleSubmit } =
@@ -22,13 +16,6 @@ export function Contact() {
       id="contact"
       className="relative bg-deep py-20 text-on-deep md:py-24"
     >
-      {/*
-        The note lives in the side gutter, not the flow: this section is a
-        centered max-w-3xl column, so dropping a rotated note into it would
-        break the symmetry the CTA depends on. At xl the gutters are ~256px, so
-        there's real room beside the column — below that it's hidden rather than
-        squeezed.
-      */}
       <div className="pointer-events-none absolute top-[24%] left-[5%] xl:block">
         <StickyNote tone="amber" tilt={-3.5} className="max-w-[196px]">
           Fastest reply is email. I actually read it.
@@ -59,22 +46,14 @@ export function Contact() {
           </Button>
         </div>
 
-        <div className="mb-14 flex flex-wrap items-center justify-center gap-7 font-mono text-[13px] tracking-wider">
-          {socialLinks.map((link) => {
-            const Icon = socialIcons[link.icon];
-            return (
-              <a
-                key={link.id}
-                href={link.href}
-                target={link.icon === 'phone' ? undefined : '_blank'}
-                rel={link.icon === 'phone' ? undefined : 'noreferrer'}
-                className="flex items-center gap-2 text-on-deep"
-              >
-                <Icon className="size-4" />
-                {link.icon === 'phone' ? link.label : link.label.toUpperCase()}
-              </a>
-            );
-          })}
+        <div className="mb-14 flex items-center justify-center font-mono text-[13px] tracking-wider">
+          <a
+            href={`tel:${siteConfig.phone.replace(/\s+/g, '')}`}
+            className="flex items-center gap-2 rounded-full border border-on-deep/20 bg-on-deep/5 px-4 py-2 text-on-deep transition-all hover:bg-on-deep/15 hover:border-on-deep/40"
+          >
+            <Phone className="size-4 flex-none" />
+            <span>{siteConfig.phone}</span>
+          </a>
         </div>
 
         <form
