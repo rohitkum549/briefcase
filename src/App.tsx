@@ -5,6 +5,7 @@ import { TechMarquee } from '@/components/sections/TechMarquee';
 import { Services } from '@/components/sections/Services';
 import { Projects } from '@/components/sections/Projects';
 import { Stack } from '@/components/sections/Stack';
+import { CodingProfilesSection } from '@/components/sections/CodingProfilesSection';
 import { Certifications } from '@/components/sections/Certifications';
 import { AiSystems } from '@/components/sections/AiSystems';
 import { Experience } from '@/components/sections/Experience';
@@ -37,6 +38,7 @@ function App() {
         <Certifications />
         <AiSystems />
         <Experience />
+        <CodingProfilesSection />
         {/* Reserved slot — see components/sections/CurrentlyShipping.tsx.
             Uncomment the import and this line once currentlyShipping has content:
             <CurrentlyShipping /> */}

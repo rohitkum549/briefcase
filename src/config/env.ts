@@ -24,6 +24,13 @@ interface AppEnv {
   contactPhone: string;
   githubUrl: string;
   linkedinUrl: string;
+  leetcodeUrl: string;
+  hackerearthUrl: string;
+  hackerrankUrl: string;
+  codechefUrl: string;
+  codeforcesUrl: string;
+  geeksforgeeksUrl: string;
+  kaggleUrl: string;
   contactEndpoint: string | null;
 }
 
@@ -35,6 +42,13 @@ const defaults: Omit<AppEnv, 'contactEndpoint'> = {
   contactPhone: ENV_DEFAULTS.VITE_CONTACT_PHONE,
   githubUrl: ENV_DEFAULTS.VITE_GITHUB_URL,
   linkedinUrl: ENV_DEFAULTS.VITE_LINKEDIN_URL,
+  leetcodeUrl: ENV_DEFAULTS.VITE_LEETCODE_URL,
+  hackerearthUrl: ENV_DEFAULTS.VITE_HACKEREARTH_URL,
+  hackerrankUrl: ENV_DEFAULTS.VITE_HACKERRANK_URL,
+  codechefUrl: ENV_DEFAULTS.VITE_CODECHEF_URL,
+  codeforcesUrl: ENV_DEFAULTS.VITE_CODEFORCES_URL,
+  geeksforgeeksUrl: ENV_DEFAULTS.VITE_GEEKSFORGEEKS_URL,
+  kaggleUrl: ENV_DEFAULTS.VITE_KAGGLE_URL,
 };
 
 function readEnvVar(key: keyof ImportMetaEnv, fallback: string): string {
@@ -54,6 +68,16 @@ function buildEnv(): AppEnv {
     contactPhone: readEnvVar('VITE_CONTACT_PHONE', defaults.contactPhone),
     githubUrl: readEnvVar('VITE_GITHUB_URL', defaults.githubUrl),
     linkedinUrl: readEnvVar('VITE_LINKEDIN_URL', defaults.linkedinUrl),
+    leetcodeUrl: readEnvVar('VITE_LEETCODE_URL', defaults.leetcodeUrl),
+    hackerearthUrl: readEnvVar('VITE_HACKEREARTH_URL', defaults.hackerearthUrl),
+    hackerrankUrl: readEnvVar('VITE_HACKERRANK_URL', defaults.hackerrankUrl),
+    codechefUrl: readEnvVar('VITE_CODECHEF_URL', defaults.codechefUrl),
+    codeforcesUrl: readEnvVar('VITE_CODEFORCES_URL', defaults.codeforcesUrl),
+    geeksforgeeksUrl: readEnvVar(
+      'VITE_GEEKSFORGEEKS_URL',
+      defaults.geeksforgeeksUrl,
+    ),
+    kaggleUrl: readEnvVar('VITE_KAGGLE_URL', defaults.kaggleUrl),
     contactEndpoint: endpoint && endpoint.trim().length > 0 ? endpoint : null,
   };
 }

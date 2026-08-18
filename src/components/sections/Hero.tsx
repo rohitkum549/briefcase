@@ -8,13 +8,6 @@ import { useResumeDownload } from '@/hooks/useResumeDownload';
 
 /*
  * The four identity fields come from siteConfig, not literals.
- *
- * They were hardcoded, which quietly defeated the point of the placeholder
- * defaults in src/config/env.defaults.ts: a build with no config would render
- * "Your Name" in the header while this card still said the real name, so a
- * misconfiguration looked like a cosmetic glitch instead of an obvious failure.
- * Now every surface tells the same story. The stack lines below stay literal —
- * they are content, not configuration.
  */
 function DeveloperCodeCard() {
   return (
@@ -41,7 +34,44 @@ function DeveloperCodeCard() {
         <span className="text-[#8FD98A]">
           &quot;{siteConfig.location}&quot;
         </span>
-        ,{'\n'} frontend: [
+        ,{'\n'} profiles: {'{'}
+        {'\n'} github:{' '}
+        <a
+          href={siteConfig.githubUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-[#8FD98A] underline hover:text-white transition-colors"
+        >
+          &quot;github.com/rohitkum549&quot;
+        </a>
+        ,{'\n'} linkedin:{' '}
+        <a
+          href={siteConfig.linkedinUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-[#8FD98A] underline hover:text-white transition-colors"
+        >
+          &quot;in/rohitkumarjha549&quot;
+        </a>
+        ,{'\n'} leetcode:{' '}
+        <a
+          href={siteConfig.leetcodeUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-[#8FD98A] underline hover:text-white transition-colors"
+        >
+          &quot;leetcode.com/u/rohitkum549&quot;
+        </a>
+        ,{'\n'} hackerearth:{' '}
+        <a
+          href={siteConfig.hackerearthUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-[#8FD98A] underline hover:text-white transition-colors"
+        >
+          &quot;hackerearth.com/@rohitkum549&quot;
+        </a>
+        {'\n'} {'}'},{'\n'} frontend: [
         <span className="text-[#8FD98A]">&quot;React 19&quot;</span>,{' '}
         <span className="text-[#8FD98A]">&quot;Next.js&quot;</span>,{' '}
         <span className="text-[#8FD98A]">&quot;Angular 19&quot;</span>],
@@ -65,12 +95,6 @@ function DeveloperCodeCard() {
 const statTones = ['amber', 'teal', 'pink'] as const;
 const statTilts = [-2.5, 1.8, -1.4];
 
-/**
- * The eyebrow is a "role · specialism · specialism" string, and only the role
- * gets underlined. Underlining the whole thing looked like a stray horizontal
- * rule: at this column width the string wraps to two lines, so a full-width
- * underline sat beneath the short second line and ran well past its last word.
- */
 function splitEyebrow(eyebrow: string): { role: string; rest: string } {
   const [role, ...rest] = eyebrow.split(' · ');
   return { role: role ?? eyebrow, rest: rest.join(' · ') };
@@ -85,23 +109,9 @@ export function Hero() {
       <div className="mx-auto w-full max-w-6xl px-5 md:px-10">
         <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2 lg:gap-20">
           <div>
-            {/*
-              The underline is the pointing gesture, so this aside needs no
-              arrow — one mark instead of two is what keeps it from competing
-              with the headline directly beneath it.
-            */}
             <div className="mb-7">
               <div className="flex items-center gap-2.5">
                 <span className="size-2 flex-none rounded-sm bg-accent-brand" />
-                {/*
-                  Relaxed leading on the wrapper plus leading-none on the
-                  underlined run: this string wraps to two lines at every
-                  desktop width, and an inline-block's box is a full
-                  line-height tall, so an underline hung off its bottom edge
-                  landed on top of the second line. leading-none shrinks the
-                  box to hug the glyphs; the wrapper's leading buys the
-                  clearance below.
-                */}
                 <span className="font-mono text-[11px] leading-[2.1] font-medium tracking-[2px] text-muted-foreground uppercase">
                   <span className="relative inline-block leading-none">
                     {splitEyebrow(hero.eyebrow).role}
@@ -147,19 +157,7 @@ export function Hero() {
                 </HandNote>
               </div>
             </div>
-            {/*
-              The stats used to be three plain type stacks, which made the
-              headline number — years shipping — the least designed thing in
-              the hero. On paper they read as something pinned up on purpose.
 
-              Alternating tilt directions rather than a uniform lean: notes
-              stuck on a wall by hand don't all list the same way, and a
-              repeated angle is the tell that gives away a template.
-
-              No ink circle here any more. The paper is the emphasis now, and
-              circling a number that already sits on a highlighted note is two
-              gestures doing one job.
-            */}
             <div className="flex flex-wrap gap-x-3.5 gap-y-5 border-t pt-9">
               {hero.stats.map((stat, i) => (
                 <div key={stat.id} className="relative">
@@ -176,13 +174,6 @@ export function Hero() {
                       {stat.label.toLowerCase()}
                     </div>
                   </StickyNote>
-                  {/*
-                    Grader's tick on the lead metric only. Sits above the
-                    paper rather than across its corner: over the note the
-                    teal lost contrast against gold in dark mode, and the
-                    short flick of the tick disappeared into the tape. Kept
-                    right of centre so it clears the tape either way.
-                  */}
                   {i === 0 && (
                     <InkCheck className="-top-7 right-0 size-8 text-accent-brand dark:text-emerald-300" />
                   )}

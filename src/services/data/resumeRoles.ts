@@ -98,8 +98,14 @@ export const resumeRoles: ResumeRole[] = [
       },
     ],
     zeqonPoints: ['zeqon.perf', 'zeqon.sites'],
-    certificationsLine:
-      "Frontend Web Application Development, Simplilearn (Jan 2023) · Full Stack Java Developer Master's Program, Simplilearn (Sep 2022 - Jul 2023, completed with distinction)",
+    certifications: [
+      { id: 'frontend-web-app-dev' },
+      {
+        id: 'master-full-stack-java',
+        date: 'Sep 2022 - Jul 2023',
+        note: 'completed with distinction',
+      },
+    ],
   },
 
   {
@@ -177,8 +183,15 @@ export const resumeRoles: ResumeRole[] = [
       { id: 'starfish', points: ['starfish.psd2'] },
     ],
     zeqonPoints: ['zeqon.perf'],
-    certificationsLine:
-      "Become a Back-End Expert, Simplilearn (Nov 2022) · ASP.NET Core Web API, Udemy (Feb 2022) · Full Stack Java Developer Master's Program, Simplilearn (Sep 2022 - Jul 2023, completed with distinction)",
+    certifications: [
+      { id: 'become-backend-expert', label: 'Become a Back-End Expert' },
+      { id: 'aspnet-core-web-api' },
+      {
+        id: 'master-full-stack-java',
+        date: 'Sep 2022 - Jul 2023',
+        note: 'completed with distinction',
+      },
+    ],
   },
 
   {
@@ -255,8 +268,15 @@ export const resumeRoles: ResumeRole[] = [
       { id: 'starfish', points: ['starfish.psd2'] },
     ],
     zeqonPoints: ['zeqon.sites'],
-    certificationsLine:
-      'Full Stack Java Developer Job Readiness — REST APIs and Swagger/OpenAPI, Simplilearn (Jul 2023) · ASP.NET Core Web API, Udemy (Feb 2022) · Network Fundamentals, Udemy (Feb 2022)',
+    certifications: [
+      {
+        id: 'full-stack-java-developer',
+        label: 'Full Stack Java Developer Job Readiness',
+        note: 'REST APIs and Swagger/OpenAPI',
+      },
+      { id: 'aspnet-core-web-api' },
+      { id: 'network-fundamentals' },
+    ],
   },
 
   {
@@ -350,8 +370,14 @@ export const resumeRoles: ResumeRole[] = [
       { id: 'starfish', points: ['starfish.psd2'] },
     ],
     zeqonPoints: ['zeqon.perf', 'zeqon.sites'],
-    certificationsLine:
-      "Full Stack Java Developer Master's Program, Simplilearn (Sep 2022 - Jul 2023, completed with distinction) · Java (Basic), HackerRank (2022)",
+    certifications: [
+      {
+        id: 'master-full-stack-java',
+        date: 'Sep 2022 - Jul 2023',
+        note: 'completed with distinction',
+      },
+      { id: 'java-basic' },
+    ],
   },
 
   // ─── Specialized Full Stack ────────────────────────────────────────────
@@ -432,6 +458,9 @@ export const resumeRoles: ResumeRole[] = [
       },
     ],
     cateinaPoints: ['cateina.ownership', 'cateina.stakeholders', 'cateina.ai'],
+    // All three platforms, alongside the five certifications that are this
+    // variant's whole Java case. Both fit because the page sets itself — see
+    // the fit-to-page note in resumeService.ts.
     platforms: [
       {
         id: 'lynqx',
@@ -446,8 +475,20 @@ export const resumeRoles: ResumeRole[] = [
       { id: 'starfish', points: ['starfish.psd2'] },
     ],
     zeqonPoints: ['zeqon.sites'],
-    certificationsLine:
-      "Full Stack Java Developer Master's Program, Simplilearn (Sep 2022 - Jul 2023, graduated with distinction) · Full Stack Java Developer Capstone Project, Simplilearn (Feb 2023) · Java (Basic), HackerRank timed assessment (Nov 2022) · Implement OOPS using Java with Data Structures, Simplilearn (Oct 2022) · Java In-Depth, Udemy (Apr 2021)",
+    certifications: [
+      {
+        id: 'master-full-stack-java',
+        date: 'Sep 2022 - Jul 2023',
+        note: 'graduated with distinction',
+      },
+      { id: 'capstone-full-stack-java' },
+      { id: 'java-basic', note: 'timed assessment' },
+      {
+        id: 'phase-1-oops-java',
+        label: 'Implement OOPS using Java with Data Structures',
+      },
+      { id: 'java-in-depth', label: 'Java In-Depth' },
+    ],
   },
 
   {
@@ -532,8 +573,15 @@ export const resumeRoles: ResumeRole[] = [
       { id: 'eps', points: ['eps.flows', 'eps.recon'] },
     ],
     zeqonPoints: ['zeqon.perf', 'zeqon.sites'],
-    certificationsLine:
-      "Frontend Web Application Development, Simplilearn (Jan 2023) · Full Stack Java Developer Master's Program, Simplilearn (Sep 2022 - Jul 2023, completed with distinction) · Full Stack Java Developer Capstone Project, Simplilearn (Feb 2023)",
+    certifications: [
+      { id: 'frontend-web-app-dev' },
+      {
+        id: 'master-full-stack-java',
+        date: 'Sep 2022 - Jul 2023',
+        note: 'completed with distinction',
+      },
+      { id: 'capstone-full-stack-java' },
+    ],
   },
 
   {
@@ -618,8 +666,15 @@ export const resumeRoles: ResumeRole[] = [
       { id: 'eps', points: ['eps.flows', 'eps.recon'] },
     ],
     zeqonPoints: ['zeqon.angular'],
-    certificationsLine:
-      "Frontend Web Application Development, Simplilearn (Jan 2023) · Full Stack Java Developer Master's Program, Simplilearn (Sep 2022 - Jul 2023, completed with distinction) · Full Stack Java Developer Capstone Project, Simplilearn (Feb 2023)",
+    certifications: [
+      { id: 'frontend-web-app-dev' },
+      {
+        id: 'master-full-stack-java',
+        date: 'Sep 2022 - Jul 2023',
+        note: 'completed with distinction',
+      },
+      { id: 'capstone-full-stack-java' },
+    ],
   },
 ];
 

@@ -36,8 +36,12 @@ export const resumeBullets: Record<string, string> = {
     'Collaborated with bank and client stakeholders to shape integration requirements, and presented releases to management.',
   'cateina.mentoring':
     "Reviewed teammates' code and mentored a new developer through onboarding.",
+  // Leads with a verb like every other line here. It read "Three production
+  // platforms in one role — ..." until an ATS pass over the wording: a bullet
+  // that opens on a noun is the one a keyword-and-verb screen scores lowest,
+  // and it was the only line on any of the seven that did it.
   'cateina.platforms':
-    'Three production platforms in one role — Lynqx, EPS and Starfish — across Open Banking, card payments and embedded finance.',
+    'Delivered three production platforms in one role — Lynqx, EPS and Starfish — across Open Banking, card payments and embedded finance.',
   // End-to-end ownership, for the four full-stack variants. Sourced from
   // heroContent ("schema to shipped screen") and the full-stack service entry.
   'cateina.ownership':

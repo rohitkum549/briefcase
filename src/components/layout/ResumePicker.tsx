@@ -12,10 +12,27 @@ import {
 import { HandNote } from '@/components/ui/hand-note';
 import { useResumeDownload } from '@/hooks/useResumeDownload';
 import { resumeRoles } from '@/services/data/resumeRoles';
-import type { ResumeRoleGroup } from '@/types/resume';
+import type { ResumeFormat, ResumeRoleGroup } from '@/types/resume';
 import { cn } from '@/lib/utils';
 
 const GROUPS: ResumeRoleGroup[] = ['General', 'Specialized Full Stack'];
+
+/**
+ * Two builds of the same document, because applications ask for it two ways.
+ *
+ * The PDF is what you attach. The plain-text build is for the forms that give
+ * you a textarea instead and expect the résumé pasted into it — pasting out of
+ * a PDF there arrives shredded, so this is the same content re-rendered as
+ * 7-bit ASCII with nothing in it a form can fail to encode.
+ */
+const FORMATS: { id: ResumeFormat; label: string; hint: string }[] = [
+  { id: 'pdf', label: 'PDF', hint: 'The file to attach or upload.' },
+  {
+    id: 'txt',
+    label: 'Plain text',
+    hint: 'Plain ASCII, for forms that ask you to paste it in.',
+  },
+];
 
 /**
  * The hidden résumé selector, opened from the word "jha" in the footer.
@@ -29,10 +46,11 @@ const GROUPS: ResumeRoleGroup[] = ['General', 'Specialized Full Stack'];
  */
 export function ResumePicker() {
   const [open, setOpen] = useState(false);
+  const [format, setFormat] = useState<ResumeFormat>('pdf');
   const { download, pending } = useResumeDownload();
 
   const handleSelect = async (roleId: (typeof resumeRoles)[number]['id']) => {
-    await download(roleId);
+    await download(roleId, format);
     /*
      * Close after the file is handed off, not on click. Closing immediately
      * would unmount the pending state that is the only signal anything is
@@ -65,6 +83,48 @@ export function ResumePicker() {
           <HandNote tilt={-2} className="mt-1 hidden sm:inline-block">
             same three years, told seven ways
           </HandNote>
+
+          {/*
+            Two <button aria-pressed> toggles rather than a radiogroup. A real
+            radiogroup owes the keyboard arrow-key navigation and a roving
+            tabindex; pressed buttons owe nothing beyond Tab and Enter, which
+            is what a two-option control in a dialog actually needs.
+          */}
+          <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span
+              id="resume-format-label"
+              className="font-mono text-[11px] font-medium tracking-[2px] text-muted-foreground uppercase"
+            >
+              Format
+            </span>
+            <div
+              role="group"
+              aria-labelledby="resume-format-label"
+              className="inline-flex rounded-lg border bg-muted/60 p-0.5"
+            >
+              {FORMATS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-pressed={format === option.id}
+                  onClick={() => setFormat(option.id)}
+                  className={cn(
+                    'cursor-pointer rounded-[7px] px-2.5 py-1 text-[12px] font-medium',
+                    'transition-colors duration-(--duration-instant)',
+                    'focus-visible:ring-2 focus-visible:ring-accent-brand focus-visible:outline-none',
+                    format === option.id
+                      ? 'bg-background text-foreground ring-1 ring-accent-brand/45'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-[12px] leading-snug text-muted-foreground">
+              {FORMATS.find((option) => option.id === format)?.hint}
+            </span>
+          </div>
         </DialogHeader>
 
         {/*

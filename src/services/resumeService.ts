@@ -7,9 +7,15 @@ import {
   DEFAULT_RESUME_ROLE,
   getResumeRole,
 } from '@/services/data/resumeRoles';
-import type { ResumeRoleId } from '@/types/resume';
+import type { ExperienceEntry, ExperienceProject } from '@/types/experience';
+import type {
+  ResumeCertificationRef,
+  ResumeFormat,
+  ResumeRole,
+  ResumeRoleId,
+} from '@/types/resume';
 
-const MARGIN = 46;
+const MARGIN = 44;
 const FONT_BODY = 9.6;
 const BULLET_INDENT = 10;
 const SUB_INDENT = 12;
@@ -58,6 +64,122 @@ function sanitize(value: string): string {
     .replace(/…/g, '...');
 }
 
+/*
+ * ┌─────────────────────────────────────────────────────────────────────────┐
+ * │  THE CONTENT MODEL                                                      │
+ * │                                                                         │
+ * │  Two renderers read the same document now: the PDF a recruiter is sent,  │
+ * │  and the plain-text build for the application forms that ask you to     │
+ * │  paste rather than upload. Selection — which platforms print, in which  │
+ * │  order, carrying which bullets — is resolved once, here, so the two can │
+ * │  differ in layout and cannot differ in content.                         │
+ * │                                                                         │
+ * │  A .txt that quietly dropped a platform the PDF shows would be the      │
+ * │  worst shape of bug available: invisible until a recruiter compares the │
+ * │  document you uploaded against the one you pasted.                      │
+ * └─────────────────────────────────────────────────────────────────────────┘
+ */
+
+interface ResumeBlock {
+  entry: ExperienceEntry;
+  /** Role-level bullets, already resolved from the pool. */
+  points: string[];
+  platforms: { project: ExperienceProject; points: string[] }[];
+}
+
+function experienceBlocks(role: ResumeRole): ResumeBlock[] {
+  const plan: Record<string, string[]> = {
+    cateina: role.cateinaPoints,
+    zeqon: role.zeqonPoints,
+  };
+  return (
+    experience
+      .filter((entry) => entry.id !== 'education')
+      // Platform order and selection are the role's call: the Angular variant
+      // has no reason to spend eight lines on ATM reconciliation, and the
+      // backend variant has no reason to lead with a component library.
+      .map((entry) => ({
+        entry,
+        points: bulletsFor(plan[entry.id] ?? []),
+        platforms: role.platforms.flatMap((selection) => {
+          const project = entry.projects?.find((p) => p.id === selection.id);
+          return project
+            ? [{ project, points: bulletsFor(selection.points) }]
+            : [];
+        }),
+      }))
+  );
+}
+
+interface ResumeCredential {
+  text: string;
+  /** The certificate's own verification page, when one exists. */
+  url: string | null;
+}
+
+/**
+ * The Certifications block, resolved from `certificationsData` by id.
+ *
+ * The roles used to carry a hand-written string per variant, which meant seven
+ * copies of the same titles and dates and no way for a correction on the site
+ * to reach them. Referencing by id means a résumé cannot name a credential
+ * that does not exist, cannot print a date the site contradicts, and gets the
+ * verification URL for free — every certification a screener reads here is one
+ * click from the issuer's own page.
+ */
+function credentialsFor(role: ResumeRole): ResumeCredential[] {
+  return role.certifications.map((ref: ResumeCertificationRef) => {
+    const cert = certifications.find((entry) => entry.id === ref.id);
+    if (!cert) throw new Error(`Unknown résumé certification id: ${ref.id}`);
+    const title = ref.label ?? cert.title;
+    // `month` is null on the one record no source dates precisely, and it is
+    // never guessed — the line then carries the year alone, exactly as the
+    // site's certification rail does.
+    const date = ref.date ?? [cert.month, cert.year].filter(Boolean).join(' ');
+    const note = ref.note ? ` (${ref.note})` : '';
+    return {
+      text: `${title} — ${cert.issuer}, ${date}${note}`,
+      url: cert.verifyUrl,
+    };
+  });
+}
+
+/** Contact details, in print order, with the ones worth clicking marked. */
+interface ContactPart {
+  text: string;
+  href?: string;
+  /** Rendered in the accent colour, so the reader can see it is a link. */
+  link?: boolean;
+}
+
+function contactParts(): ContactPart[] {
+  return [
+    {
+      text: siteConfig.email,
+      href: `mailto:${siteConfig.email}`,
+      link: true,
+    },
+    // Linked but not accented. A tel: URI is genuinely useful on a phone and
+    // inert on the desktop where most of these are read, so it does not earn
+    // the visual weight the other three do.
+    {
+      text: siteConfig.phone,
+      href: `tel:${siteConfig.phone.replace(/[^\d+]/g, '')}`,
+    },
+    { text: siteConfig.location },
+    {
+      text: stripUrl(siteConfig.linkedinUrl),
+      href: siteConfig.linkedinUrl,
+      link: true,
+    },
+    {
+      text: stripUrl(siteConfig.githubUrl),
+      href: siteConfig.githubUrl,
+      link: true,
+    },
+  ].map((part) => ({ ...part, text: sanitize(part.text) }));
+}
+
 /**
  * Role, date and time in the filename — `Rohit_Jha-Frontend_17-08-2026_1432.pdf`.
  *
@@ -73,6 +195,7 @@ function sanitize(value: string): string {
  */
 export function resumeFileName(
   roleId: ResumeRoleId = DEFAULT_RESUME_ROLE,
+  format: ResumeFormat = 'pdf',
   now: Date = new Date(),
 ): string {
   const pad = (value: number) => String(value).padStart(2, '0');
@@ -84,7 +207,7 @@ export function resumeFileName(
   // Only letters, digits, hyphen and underscore reach the filename: some ATS
   // upload forms reject or mangle parentheses, spaces and diacritics.
   const slug = getResumeRole(roleId).fileSlug.replace(/[^A-Za-z0-9-]/g, '');
-  return `${name}-${slug}_${dd}-${mm}-${yyyy}_${time}.pdf`;
+  return `${name}-${slug}_${dd}-${mm}-${yyyy}_${time}.${format}`;
 }
 
 interface TextOptions {
@@ -106,8 +229,18 @@ class ResumeWriter {
   private readonly pageWidth: number;
   private readonly pageHeight: number;
   private readonly contentWidth: number;
+  private readonly scale: number;
 
-  constructor() {
+  /**
+   * Every vertical metric and font size in this class is stated at scale 1 and
+   * multiplied through `m()`. `fitToPage` below searches for the largest scale
+   * a variant can carry and still hold one page, which is what stops the
+   * shorter résumés ending two thirds of the way down an A4 sheet with a hand
+   * of white space under them. Nothing is padded to achieve it — the same
+   * words are simply set at the size the page can afford.
+   */
+  constructor(scale = 1) {
+    this.scale = scale;
     this.doc = new jsPDF({ unit: 'pt', format: 'a4' });
     this.pageWidth = this.doc.internal.pageSize.getWidth();
     this.pageHeight = this.doc.internal.pageSize.getHeight();
@@ -126,6 +259,11 @@ class ResumeWriter {
     return this.pageWidth - MARGIN;
   }
 
+  /** Scale a metric stated at the base size. Margins are page geometry and stay put. */
+  private m(value: number): number {
+    return value * this.scale;
+  }
+
   text(
     value: string,
     {
@@ -136,65 +274,67 @@ class ResumeWriter {
       indent = 0,
     }: TextOptions = {},
   ) {
-    const lineGap = gap ?? size + 3.2;
+    const lineGap = this.m(gap ?? size + 3.2);
+    const left = MARGIN + this.m(indent);
     this.doc.setFont('helvetica', bold ? 'bold' : 'normal');
-    this.doc.setFontSize(size);
+    this.doc.setFontSize(this.m(size));
     this.doc.setTextColor(...color);
     const wrapped = this.doc.splitTextToSize(
       sanitize(value),
-      this.contentWidth - indent,
+      this.rightEdge - left,
     ) as string[];
     for (const row of wrapped) {
       this.ensureSpace(lineGap);
-      this.doc.text(row, MARGIN + indent, this.y);
+      this.doc.text(row, left, this.y);
       this.y += lineGap;
     }
   }
 
   /** Role on the left, dates flush right — the classic senior-résumé line. */
   roleLine(left: string, right: string) {
-    this.ensureSpace(15);
+    this.ensureSpace(this.m(15));
     this.doc.setFont('helvetica', 'bold');
-    this.doc.setFontSize(10.6);
+    this.doc.setFontSize(this.m(10.6));
     this.doc.setTextColor(...INK);
     this.doc.text(sanitize(left), MARGIN, this.y);
 
     this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(9.2);
+    this.doc.setFontSize(this.m(9.2));
     this.doc.setTextColor(...MUTED);
     this.doc.text(sanitize(right), this.rightEdge, this.y, { align: 'right' });
-    this.y += 12.5;
+    this.y += this.m(12.5);
   }
 
   companyLine(left: string, right: string) {
-    this.ensureSpace(13);
+    this.ensureSpace(this.m(13));
     this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(9.6);
+    this.doc.setFontSize(this.m(9.6));
     this.doc.setTextColor(...ACCENT);
     this.doc.text(sanitize(left), MARGIN, this.y);
 
     this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(9.2);
+    this.doc.setFontSize(this.m(9.2));
     this.doc.setTextColor(...MUTED);
     this.doc.text(sanitize(right), this.rightEdge, this.y, { align: 'right' });
-    this.y += 13;
+    this.y += this.m(13);
   }
 
   /** Named platform inside a role — "Lynqx — Open Banking platform · FinTech". */
   projectLine(name: string, kind: string) {
-    this.ensureSpace(13);
+    this.ensureSpace(this.m(13));
     this.doc.setFont('helvetica', 'bold');
-    this.doc.setFontSize(9.6);
+    this.doc.setFontSize(this.m(9.6));
     this.doc.setTextColor(...INK);
     const label = `${sanitize(name)}  `;
-    this.doc.text(label, MARGIN + SUB_INDENT, this.y);
+    const left = MARGIN + this.m(SUB_INDENT);
+    this.doc.text(label, left, this.y);
     const width = this.doc.getTextWidth(label);
 
     this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(8.6);
+    this.doc.setFontSize(this.m(8.6));
     this.doc.setTextColor(...MUTED);
-    this.doc.text(sanitize(kind), MARGIN + SUB_INDENT + width, this.y);
-    this.y += 12;
+    this.doc.text(sanitize(kind), left + width, this.y);
+    this.y += this.m(12);
   }
 
   /**
@@ -209,47 +349,78 @@ class ResumeWriter {
    * weights, un-subsettable without fontTools), which isn't worth it: one text()
    * call per line is measurement-free and correct in every viewer.
    */
-  bullet(value: string, indent = 0) {
-    const lineGap = 12.2;
+  bullet(value: string, level = 0, href?: string | null) {
+    const lineGap = this.m(12.2);
+    const hang = this.m(BULLET_INDENT);
     this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(FONT_BODY);
-    const left = MARGIN + indent;
+    this.doc.setFontSize(this.m(FONT_BODY));
+    const left = MARGIN + this.m(level * SUB_INDENT);
     const wrapped = this.doc.splitTextToSize(
       sanitize(value),
-      this.contentWidth - indent - BULLET_INDENT,
+      this.rightEdge - left - hang,
     ) as string[];
 
     wrapped.forEach((row, i) => {
       this.ensureSpace(lineGap);
       if (i === 0) {
         this.doc.setTextColor(...ACCENT);
-        this.doc.text('•', left + 1, this.y);
+        this.doc.text('•', left + this.m(1), this.y);
       }
       this.doc.setTextColor(...INK);
-      this.doc.text(row, left + BULLET_INDENT, this.y);
+      this.doc.text(row, left + hang, this.y);
+      // A wrapped line needs its own rectangle: a link annotation is a box on
+      // the page, not a property of a run of text, so one rect over the first
+      // line would leave the rest of a two-line credential dead to the click.
+      if (href) {
+        this.linkOver(
+          left + hang,
+          this.doc.getTextWidth(row),
+          this.m(FONT_BODY),
+          href,
+        );
+      }
       this.y += lineGap;
     });
   }
 
+  /**
+   * Clickable rectangle over a run of text sitting on the current baseline.
+   *
+   * jsPDF's `link()` takes a top-left corner, while `text()` draws from a
+   * baseline, so the two disagree by roughly the ascender. The 0.85/1.12 pair
+   * covers cap height plus a little descender — generous enough that a click
+   * anywhere on the glyphs registers, tight enough that two links on the same
+   * line never overlap each other's boxes.
+   *
+   * Link annotations are not graphics. They add nothing to the content stream
+   * a parser walks, so the single-column, text-only promise this document
+   * makes to an ATS is untouched: the text still extracts identically, the
+   * URL is just also live for the human reading it.
+   */
+  private linkOver(x: number, width: number, size: number, url: string) {
+    this.doc.link(x, this.y - size * 0.85, width, size * 1.12, { url });
+  }
+
   sectionHeading(title: string) {
-    this.gap(6);
-    this.ensureSpace(24);
+    this.gap(4);
+    this.ensureSpace(this.m(24));
     this.doc.setFont('helvetica', 'bold');
-    this.doc.setFontSize(9.4);
+    this.doc.setFontSize(this.m(9.4));
     this.doc.setTextColor(...ACCENT);
     // No charSpace. Letter-spacing is applied by positioning each glyph
     // individually, and a naive text extractor reads that back as "S U M M A R Y"
     // — which stops it recognising the section header it was keying on. Bold,
     // uppercase and the accent rule carry the hierarchy without the risk.
     this.doc.text(title.toUpperCase(), MARGIN, this.y);
-    this.y += 5;
+    this.y += this.m(5);
+    const tick = MARGIN + this.m(24);
     this.doc.setDrawColor(...ACCENT);
-    this.doc.setLineWidth(1.1);
-    this.doc.line(MARGIN, this.y, MARGIN + 24, this.y);
+    this.doc.setLineWidth(this.m(1.1));
+    this.doc.line(MARGIN, this.y, tick, this.y);
     this.doc.setDrawColor(...RULE);
-    this.doc.setLineWidth(0.6);
-    this.doc.line(MARGIN + 24, this.y, this.rightEdge, this.y);
-    this.y += 11;
+    this.doc.setLineWidth(this.m(0.6));
+    this.doc.line(tick, this.y, this.rightEdge, this.y);
+    this.y += this.m(10);
   }
 
   /**
@@ -269,31 +440,60 @@ class ResumeWriter {
    * field would render as mojibake on the most important line of the document.
    */
   header(headline: string): void {
-    const HEADER_BLOCK = 42;
+    const HEADER_BLOCK = this.m(42);
     const top = this.y;
 
     this.doc.setFont('helvetica', 'bold');
-    this.doc.setFontSize(19);
+    this.doc.setFontSize(this.m(19));
     this.doc.setTextColor(...INK);
     // No charSpace. Section headings dropped their letter-spacing so naive
     // extractors could not read them back as "S U M M A R Y"; the name is the
     // single token where that failure would cost the most, so it follows the
     // same rule. 0.4pt of tracking is not worth the risk.
-    this.doc.text(sanitize(siteConfig.name).toUpperCase(), MARGIN, top + 13);
+    this.doc.text(
+      sanitize(siteConfig.name).toUpperCase(),
+      MARGIN,
+      top + this.m(13),
+    );
 
     this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(10.4);
+    this.doc.setFontSize(this.m(10.4));
     this.doc.setTextColor(...ACCENT);
     // The headline is role-specific — it is the first line under the name and
     // the one a six-second skim uses to decide whether this is the right pile,
     // so it says "Frontend Engineer" on the frontend variant rather than the
     // site's single generic title.
-    this.doc.text(sanitize(headline), MARGIN, top + 27);
+    this.doc.text(sanitize(headline), MARGIN, top + this.m(27));
 
     this.y = top + HEADER_BLOCK;
 
     this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(9);
+    /*
+     * The contact line is sized to fit, not to the scale.
+     *
+     * It is the one line on the page constrained by width rather than by
+     * density: five values plus separators, and at the larger scales the
+     * fit-to-page search picks for the shorter variants it stopped fitting on
+     * one row and dropped a lone "github.com/…" onto a second. Glyph width is
+     * linear in font size, so one measurement gives the exact size that fits —
+     * take that or the scaled size, whichever is smaller, and never go below
+     * 8pt, where the packing logic below takes over and wraps properly.
+     */
+    const SEP = '  ·  ';
+    const parts = contactParts();
+    this.doc.setFontSize(this.m(9));
+    const natural = this.doc.getTextWidth(
+      parts.map((part) => part.text).join(SEP),
+    );
+    // 0.5% under the exact fit: the packing loop below measures each value and
+    // separator separately and its rounding sums a fraction wider than one
+    // measurement of the joined string, which at the exact size is enough to
+    // trip the wrap and drop a lone "github.com/…" onto its own row.
+    const contactSize = Math.max(
+      8,
+      Math.min(this.m(9), (this.m(9) * this.contentWidth * 0.995) / natural),
+    );
+    this.doc.setFontSize(contactSize);
     this.doc.setTextColor(...MUTED);
     /*
      * Contact details, packed by measurement rather than by eye.
@@ -308,46 +508,78 @@ class ResumeWriter {
      * measurement existed to prevent. Today all five fit with about 7pt to
      * spare, so that branch was one env-value change away from being reached.
      */
-    const SEP = '  ·  ';
-    const parts = [
-      siteConfig.email,
-      siteConfig.phone,
-      siteConfig.location,
-      stripUrl(siteConfig.linkedinUrl),
-      stripUrl(siteConfig.githubUrl),
-    ].map(sanitize);
+    const sepWidth = this.doc.getTextWidth(SEP);
 
-    const rows: string[] = [];
+    /*
+     * Packed part by part rather than row by row, because the LinkedIn and
+     * GitHub URLs are live links now and a link is a rectangle: it needs the
+     * x and the width of its own run, which a pre-joined string has thrown
+     * away. The measurement discipline is unchanged — every row is checked
+     * against the content width, and the pathological case of one value wider
+     * than the page still breaks mid-token rather than drawing off the edge.
+     */
+    const rows: ContactPart[][] = [];
+    let row: ContactPart[] = [];
+    let width = 0;
+
+    const place = (part: ContactPart) => {
+      const partWidth = this.doc.getTextWidth(part.text);
+      const cost = row.length === 0 ? partWidth : sepWidth + partWidth;
+      if (row.length > 0 && width + cost > this.contentWidth) {
+        rows.push(row);
+        row = [];
+        width = 0;
+        row.push(part);
+        width = partWidth;
+        return;
+      }
+      row.push(part);
+      width += cost;
+    };
+
     for (const part of parts) {
-      const last = rows[rows.length - 1];
-      const merged = last === undefined ? part : `${last}${SEP}${part}`;
-      if (
-        last !== undefined &&
-        this.doc.getTextWidth(merged) <= this.contentWidth
-      ) {
-        rows[rows.length - 1] = merged;
-      } else if (this.doc.getTextWidth(part) <= this.contentWidth) {
-        rows.push(part);
-      } else {
-        // A single value wider than the page: pathological, but breaking it
-        // mid-token still beats drawing it off the edge where it is unreadable
-        // and unparseable.
-        rows.push(
-          ...(this.doc.splitTextToSize(part, this.contentWidth) as string[]),
-        );
+      if (this.doc.getTextWidth(part.text) <= this.contentWidth) {
+        place(part);
+        continue;
+      }
+      // Every fragment keeps the href: half a URL you can still click beats a
+      // whole URL you cannot.
+      for (const fragment of this.doc.splitTextToSize(
+        part.text,
+        this.contentWidth,
+      ) as string[]) {
+        if (row.length > 0) {
+          rows.push(row);
+          row = [];
+          width = 0;
+        }
+        rows.push([{ ...part, text: fragment }]);
       }
     }
+    if (row.length > 0) rows.push(row);
 
-    rows.forEach((row, i) => {
-      this.doc.text(row, MARGIN, this.y);
-      if (i < rows.length - 1) this.y += 10.5;
+    rows.forEach((cells, rowIndex) => {
+      let x = MARGIN;
+      cells.forEach((cell, i) => {
+        if (i > 0) {
+          this.doc.setTextColor(...MUTED);
+          this.doc.text(SEP, x, this.y);
+          x += sepWidth;
+        }
+        const cellWidth = this.doc.getTextWidth(cell.text);
+        this.doc.setTextColor(...(cell.link ? ACCENT : MUTED));
+        this.doc.text(cell.text, x, this.y);
+        if (cell.href) this.linkOver(x, cellWidth, contactSize, cell.href);
+        x += cellWidth;
+      });
+      if (rowIndex < rows.length - 1) this.y += contactSize + this.m(1.5);
     });
-    this.y += 10;
+    this.y += this.m(10);
 
     this.doc.setDrawColor(...RULE);
-    this.doc.setLineWidth(0.6);
+    this.doc.setLineWidth(this.m(0.6));
     this.doc.line(MARGIN, this.y, this.rightEdge, this.y);
-    this.y += 12;
+    this.y += this.m(12);
   }
 
   /**
@@ -363,9 +595,9 @@ class ResumeWriter {
    * never overrun the right margin.
    */
   skillRow(label: string, value: string) {
-    const lineGap = 12.2;
-    const CONTINUATION_INDENT = 12;
-    this.doc.setFontSize(FONT_BODY);
+    const lineGap = this.m(12.2);
+    const CONTINUATION_INDENT = this.m(12);
+    this.doc.setFontSize(this.m(FONT_BODY));
     this.doc.setFont('helvetica', 'bold');
     const labelText = `${label}: `;
     const labelWidth = this.doc.getTextWidth(labelText);
@@ -396,15 +628,17 @@ class ResumeWriter {
   }
 
   gap(height: number) {
-    this.y += height;
+    this.y += this.m(height);
+  }
+
+  /** How far down the page the content reached, as a fraction of the usable height. */
+  get fill(): number {
+    return (this.y - MARGIN) / (this.pageHeight - MARGIN * 2);
   }
 }
 
-export function generateResumePdf(
-  roleId: ResumeRoleId = DEFAULT_RESUME_ROLE,
-): jsPDF {
-  const role = getResumeRole(roleId);
-  const w = new ResumeWriter();
+function buildResume(role: ResumeRole, scale: number): ResumeWriter {
+  const w = new ResumeWriter(scale);
 
   w.header(role.headline);
 
@@ -420,13 +654,19 @@ export function generateResumePdf(
    * The facts all survive lower down, each in one place. Deleting it also freed
    * the 57pt that the ownership bullets below are spending.
    */
-  // Standard section names throughout — "Summary", "Technical Skills",
-  // "Professional Experience", "Education". An ATS keys on these exact strings;
-  // a cleverer heading ("What I'm good at") is an unrecognised block.
+  /*
+   * Standard section names, and only standard section names: Summary, Skills,
+   * Experience, Awards, Certifications, Education. An ATS keys on these exact
+   * strings to decide which block it is reading — a cleverer heading ("What
+   * I'm good at") is an unrecognised block, and even a reasonable-sounding
+   * compound one is a risk: "Awards & Certifications" is a single header that
+   * matches neither list on the older parsers, which is why it is two sections
+   * below rather than one.
+   */
   w.sectionHeading('Summary');
   w.text(role.summary, { gap: 12.2 });
 
-  w.sectionHeading('Technical Skills');
+  w.sectionHeading('Skills');
   role.skills.forEach((row) => {
     w.skillRow(row.label, row.items.join(', '));
   });
@@ -437,58 +677,53 @@ export function generateResumePdf(
    * across variants is the one thing a recruiter comparing two of these would
    * actually catch. Only the BULLETS are selected per role, and only from the
    * pool. Nothing here can invent a job.
+   *
+   * Projects stay nested under the employer that paid for them rather than
+   * moving to a standalone Projects section. A separate section carries no
+   * dates, so a parser has nowhere to place the work in time and a reader has
+   * to guess who it was for; nested, all three platforms inherit the Cateina
+   * dates and the attribution is unambiguous. The keyword indexing an ATS does
+   * is identical either way.
    */
-  w.sectionHeading('Professional Experience');
-  const bulletPlan: Record<string, string[]> = {
-    cateina: role.cateinaPoints,
-    zeqon: role.zeqonPoints,
-  };
+  w.sectionHeading('Experience');
+  experienceBlocks(role).forEach((block, index) => {
+    if (index > 0) w.gap(9);
+    w.roleLine(block.entry.role, block.entry.period);
+    w.companyLine(block.entry.company, block.entry.location);
 
-  experience
-    .filter((entry) => entry.id !== 'education')
-    .forEach((entry, index) => {
-      if (index > 0) w.gap(9);
-      w.roleLine(entry.role, entry.period);
-      w.companyLine(entry.company, entry.location);
+    /*
+     * Role-level points carry what no platform bullet can — the initiative,
+     * the stakeholder work, the mentoring. At least one prints on every
+     * variant: a résumé made only of "Built X" scores zero on every
+     * leadership, teamwork and communication check there is.
+     */
+    block.points.forEach((point) => w.bullet(point));
 
-      /*
-       * Role-level points carry what no platform bullet can — the initiative,
-       * the stakeholder work, the mentoring. At least one prints on every
-       * variant: a résumé made only of "Built X" scores zero on every
-       * leadership, teamwork and communication check there is.
-       */
-      bulletsFor(bulletPlan[entry.id] ?? []).forEach((point) =>
-        w.bullet(point),
-      );
-
-      // Platform order and selection are the role's call: the Angular variant
-      // has no reason to spend eight lines on ATM reconciliation, and the
-      // backend variant has no reason to lead with a component library.
-      const selections =
-        role.platforms.filter((selection) =>
-          entry.projects?.some((project) => project.id === selection.id),
-        ) ?? [];
-
-      selections.forEach((selection) => {
-        const project = entry.projects?.find((p) => p.id === selection.id);
-        if (!project) return;
-        w.gap(3);
-        w.projectLine(project.name, project.kind);
-        bulletsFor(selection.points).forEach((point) =>
-          w.bullet(point, SUB_INDENT),
-        );
-      });
+    block.platforms.forEach(({ project, points }) => {
+      w.gap(3);
+      w.projectLine(project.name, project.kind);
+      points.forEach((point) => w.bullet(point, 1));
     });
+  });
 
   /*
-   * The award earns its own section, above Education.
+   * The award earns its own section, above Certifications.
    *
-   * It is the only credential here that an employer decided to give, so it does
-   * not belong in a list alongside course completions — and a named section
-   * header is also what an ATS keys on, where the same sentence buried in a
-   * bullet is just another line of prose.
-   *
-   * Which certifications follow it is the role's call. Thirteen would push the
+   * It is the only credential here that an employer decided to give, so it
+   * does not belong in a list alongside course completions — and a named
+   * section header is also what an ATS keys on, where the same sentence buried
+   * in a bullet is just another line of prose.
+   */
+  w.sectionHeading('Awards');
+  w.roleLine(`${award.title} — ${award.org}`, award.shortDate);
+  // Verb first, and the signatory before the citation: "Tech Ninja Pro" means
+  // nothing outside Cateina, but an award a chief executive put their name to
+  // does. This is the only place on the page the citation appears — the role
+  // bullet about the same work deliberately uses different words for it.
+  w.bullet(`Awarded by the ${award.signedByRole} — "${award.citation}"`);
+
+  /*
+   * Which certifications follow is the role's call. Thirteen would push the
    * page over and would read as padding, so each variant names the two to five
    * that a screener for THAT role is actually looking for — the frontend one
    * leads with Frontend Web Application Development, the integration one with
@@ -498,32 +733,26 @@ export function generateResumePdf(
    * five, because for that role the certification track IS the Java evidence
    * (see the header note in resumeRoles.ts) and burying it would be the
    * dishonest kind of brevity.
-   */
-  w.sectionHeading('Awards & Certifications');
-  w.roleLine(`${award.title} — ${award.org}`, award.shortDate);
-  // Verb first, and the signatory before the citation: "Tech Ninja Pro" means
-  // nothing outside Cateina, but an award a chief executive put their name to
-  // does. This is the only place on the page the citation appears — the role
-  // bullet about the same work deliberately uses different words for it.
-  w.bullet(`Awarded by the ${award.signedByRole} — "${award.citation}"`);
-  w.gap(2);
-  /*
-   * The programme carries its full date range, not just "2023".
    *
-   * Between graduating in 2022 and starting at Zeqon in Apr 2023 there is a
-   * ten-month gap, and an unexplained gap is a documented HR red flag that a
-   * bare year does nothing to answer. The Simplilearn track ran Sep 2022 to
-   * Jul 2023 — see certificationsData — so the range covers the window with a
-   * fact rather than leaving a screener to guess at it.
+   * One credential per line, not a run-on string separated by dots. A parser
+   * splitting a block into records splits it on line breaks; three titles,
+   * three issuers and three dates sharing one paragraph is the shape that
+   * comes back as a single unusable field. The line also carries the
+   * certificate's own verification URL, so every claim here is one click from
+   * the issuer's page.
    */
+  w.sectionHeading('Certifications');
+  const credentials = credentialsFor(role);
+  credentials.forEach((credential) => {
+    w.bullet(credential.text, 0, credential.url);
+  });
   // Both counts come from the data, not literals, so adding a certificate to
   // the site can't leave a stale "13" on the résumé and reordering a role's
-  // list can't leave a stale "2". The tail earns its place by telling a reader
+  // list can't leave a stale "3". The tail earns its place by telling a reader
   // that the ones named are a selection rather than the whole record.
-  const shown = role.certificationsLine.split(' · ').length;
-  w.skillRow(
-    'Certifications',
-    `${role.certificationsLine} · ${shown} of ${certifications.length} completed`,
+  w.text(
+    `${credentials.length} of ${certifications.length} completed — each title above links to its verification page.`,
+    { size: 8.4, color: MUTED, gap: 9, indent: BULLET_INDENT },
   );
 
   const education = experience.find((entry) => entry.id === 'education');
@@ -536,7 +765,90 @@ export function generateResumePdf(
     // nothing worth a page break.
   }
 
-  return w.doc;
+  return w;
+}
+
+/*
+ * ┌─────────────────────────────────────────────────────────────────────────┐
+ * │  FIT TO PAGE                                                            │
+ * │                                                                         │
+ * │  Seven variants carry different amounts of evidence, and set at one     │
+ * │  fixed size they finished at wildly different points down the sheet —   │
+ * │  the frontend résumé stopped at 85% of the page and left a hand of      │
+ * │  white space beneath Education, while the full-stack one ran to 96%.    │
+ * │  A page that stops three quarters of the way down reads as a document   │
+ * │  with nothing left to say.                                              │
+ * │                                                                         │
+ * │  The wrong fix is padding: an extra bullet nobody needed, a filler      │
+ * │  section, a certification that does not belong on that application.     │
+ * │  So nothing is added. The document is simply SET at the largest size    │
+ * │  the page can carry — every font size, leading and gap multiplied by    │
+ * │  one factor, searched for here.                                         │
+ * │                                                                         │
+ * │  It has to be a search rather than arithmetic because the relationship  │
+ * │  is not linear: bigger type means fewer characters per line, so a       │
+ * │  paragraph can gain a whole line at one size and lose it at the next.   │
+ * │  Twelve bisection steps land within ~0.01% of the largest scale that    │
+ * │  still holds one page.                                                  │
+ * │                                                                         │
+ * │  The ceiling is real, not decorative. Uncapped, a very short variant    │
+ * │  would keep growing until it looked like a large-print edition; 1.22    │
+ * │  puts the body text at ~11.7pt, which is the top of the range a         │
+ * │  recruiter reads as a normal résumé.                                    │
+ * └─────────────────────────────────────────────────────────────────────────┘
+ */
+/*
+ * The floor is below 1, which makes this a two-way fit rather than a one-way
+ * stretch: a variant that outgrows the page gets set a hair smaller instead of
+ * spilling onto a second sheet nobody reads. It is a safety valve, not a
+ * licence to overfill — the verification harness fails if any variant is
+ * actually driven below 0.98, because past that the honest fix is to cut a
+ * line, not to shrink the type until it fits.
+ */
+const MIN_SCALE = 0.94;
+const MAX_SCALE = 1.22;
+const FIT_STEPS = 12;
+
+function fitScale(role: ResumeRole): number {
+  if (buildResume(role, MAX_SCALE).doc.getNumberOfPages() === 1)
+    return MAX_SCALE;
+
+  let lo = MIN_SCALE;
+  let hi = MAX_SCALE;
+  for (let i = 0; i < FIT_STEPS; i++) {
+    const mid = (lo + hi) / 2;
+    if (buildResume(role, mid).doc.getNumberOfPages() === 1) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/*
+ * Memoised per role. The search costs a dozen renders, and without this the
+ * page-count check and the download path would each pay for it again — the
+ * result is a pure function of data that cannot change at runtime.
+ */
+const scaleCache = new Map<ResumeRoleId, number>();
+
+function scaleFor(role: ResumeRole): number {
+  const cached = scaleCache.get(role.id);
+  if (cached !== undefined) return cached;
+  const scale = fitScale(role);
+  scaleCache.set(role.id, scale);
+  return scale;
+}
+
+export function generateResumePdf(
+  roleId: ResumeRoleId = DEFAULT_RESUME_ROLE,
+): jsPDF {
+  const role = getResumeRole(roleId);
+  return buildResume(role, scaleFor(role)).doc;
+}
+
+/** How much of the usable page a variant fills, 0-1. Used by the density check. */
+export function resumeFill(roleId: ResumeRoleId = DEFAULT_RESUME_ROLE): number {
+  const role = getResumeRole(roleId);
+  return buildResume(role, scaleFor(role)).fill;
 }
 
 /**
@@ -552,9 +864,173 @@ export function resumePageCount(
   return generateResumePdf(roleId).getNumberOfPages();
 }
 
+/*
+ * ┌─────────────────────────────────────────────────────────────────────────┐
+ * │  THE PLAIN-TEXT BUILD                                                   │
+ * │                                                                         │
+ * │  Same document, rendered for the field that will not take a file.       │
+ * │                                                                         │
+ * │  Plenty of application forms ask you to paste the résumé into a          │
+ * │  textarea, and pasting out of a PDF into one of those is where a        │
+ * │  carefully typeset document goes to die: the bullet glyphs arrive as    │
+ * │  boxes, the right-aligned dates interleave with the role titles they    │
+ * │  sat beside, and the hanging indents come through as runs of spaces     │
+ * │  that a parser reads as column structure.                               │
+ * │                                                                         │
+ * │  So this build is 7-bit ASCII and nothing else — no em dash, no middle  │
+ * │  dot, no typographic bullet, no curly quote. There is no glyph in it a  │
+ * │  form can fail to encode. Content comes from the same model the PDF     │
+ * │  uses, so the two cannot drift.                                         │
+ * └─────────────────────────────────────────────────────────────────────────┘
+ */
+
+/** Hard wrap. Wide enough not to look shredded, narrow enough for a textarea. */
+const TEXT_WIDTH = 98;
+
+/**
+ * Down to printable ASCII, deliberately and in this order.
+ *
+ * `sanitize` first, because it already knows how to fold the arrows and curly
+ * quotes the WinAnsi PDF encoding could not carry either. Then the three
+ * marks this document actually uses — em/en dash, middle dot, bullet — get
+ * explicit ASCII equivalents rather than being dropped, because a silent
+ * deletion turns "Express — Institutions" into "Express Institutions" and
+ * loses the punctuation that made the sentence parse. Only after that does
+ * anything still outside the printable range get stripped.
+ */
+function toAscii(value: string): string {
+  return sanitize(value)
+    .replace(/[—–]/g, '-')
+    .replace(/·/g, '|')
+    .replace(/•/g, '-')
+    .replace(/[^ -~]/g, '');
+}
+
+/** Wrap to TEXT_WIDTH, with `first` on the opening line and `rest` hanging. */
+function wrapText(value: string, first = '', rest = ''): string[] {
+  const words = toAscii(value).split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = '';
+  let prefix = first;
+
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (line && prefix.length + candidate.length > TEXT_WIDTH) {
+      lines.push(prefix + line);
+      prefix = rest;
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(prefix + line);
+  return lines;
+}
+
+/**
+ * The résumé as plain text.
+ *
+ * Section names, order and content match the PDF exactly — a screener who
+ * received the file and a screener reading the pasted field are looking at the
+ * same document.
+ */
+export function generateResumeText(
+  roleId: ResumeRoleId = DEFAULT_RESUME_ROLE,
+): string {
+  const role = getResumeRole(roleId);
+  const out: string[] = [];
+  const push = (...lines: string[]) => out.push(...lines);
+  const heading = (title: string) => push('', title.toUpperCase());
+  const bullet = (value: string, indent = '') =>
+    push(...wrapText(value, `${indent}- `, `${indent}  `));
+
+  push(toAscii(siteConfig.name).toUpperCase());
+  push(toAscii(role.headline));
+  push(
+    toAscii(
+      [siteConfig.email, siteConfig.phone, siteConfig.location].join('  ·  '),
+    ),
+  );
+  // Labelled, and printed in full. The PDF can afford to strip the scheme
+  // because the text is a live annotation there; here the string IS the link,
+  // and a bare "linkedin.com/in/..." is not one a form will turn into an
+  // anchor. The label also survives a parser that keeps only the line's tail.
+  push(`LinkedIn: ${siteConfig.linkedinUrl}`);
+  push(`GitHub: ${siteConfig.githubUrl}`);
+
+  heading('Summary');
+  push(...wrapText(role.summary));
+
+  heading('Skills');
+  role.skills.forEach((row) => {
+    push(...wrapText(`${row.label}: ${row.items.join(', ')}`, '', '  '));
+  });
+
+  heading('Experience');
+  experienceBlocks(role).forEach((block) => {
+    push('');
+    push(toAscii(block.entry.role));
+    push(
+      toAscii(
+        [block.entry.company, block.entry.location, block.entry.period].join(
+          '  ·  ',
+        ),
+      ),
+    );
+    block.points.forEach((point) => bullet(point));
+    block.platforms.forEach(({ project, points }) => {
+      push('');
+      push(toAscii(`  ${project.name} — ${project.kind}`));
+      points.forEach((point) => bullet(point, '  '));
+    });
+  });
+
+  heading('Awards');
+  push(toAscii(`${award.title} — ${award.org}  ·  ${award.shortDate}`));
+  bullet(`Awarded by the ${award.signedByRole} — "${award.citation}"`);
+
+  heading('Certifications');
+  credentialsFor(role).forEach((credential) => {
+    bullet(credential.text);
+    // On its own line rather than inline, so a wrap can never split a URL.
+    if (credential.url) push(`  ${credential.url}`);
+  });
+
+  const education = experience.find((entry) => entry.id === 'education');
+  if (education) {
+    heading('Education');
+    push(toAscii(education.role));
+    push(
+      toAscii(
+        [education.company, education.location, education.period].join('  ·  '),
+      ),
+    );
+  }
+
+  return `${out.join('\n')}\n`;
+}
+
 export function downloadResume(
   roleId: ResumeRoleId = DEFAULT_RESUME_ROLE,
+  format: ResumeFormat = 'pdf',
 ): void {
-  const doc = generateResumePdf(roleId);
-  doc.save(resumeFileName(roleId));
+  const fileName = resumeFileName(roleId, format);
+
+  if (format === 'pdf') {
+    generateResumePdf(roleId).save(fileName);
+    return;
+  }
+
+  const blob = new Blob([generateResumeText(roleId)], {
+    type: 'text/plain;charset=utf-8',
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  // Next task, not this one. Revoking synchronously after click() races the
+  // browser's own read of the blob in some engines, and the failure is a
+  // zero-byte download rather than an error.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
